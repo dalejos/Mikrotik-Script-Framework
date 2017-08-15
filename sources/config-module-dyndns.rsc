@@ -1,9 +1,10 @@
-#Version: 1.0
+#Version: 2.0 beta
 #Fecha: 20-04-2017
 #RouterOS 6.38
 #Comentario:
 
-:global gConfig;
+:global setLastError;
+:local lConfigName "config-module-dyndns";
 
 #TODO-BEGIN
 
@@ -18,4 +19,4 @@
 
 #TODO-END
 
-:set ($gConfig->"Loaded") true;
+$setLastError 0 ("$lConfigName cargado.");

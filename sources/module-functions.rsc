@@ -1,20 +1,13 @@
-#Version: 1.0
-#Fecha: 20-04-2017
-#RouterOS 6.38
+#Version: 2.0 beta
+#Fecha: 27-04-2017
+#RouterOS 6.38.5
 #Comentario:
 
+:global NOTHING;
 :global setModuleStatusLoad;
 :local lModuleName "module-functions";
 
 #TODO-BEGIN
-
-:global NOTHING do={
-    :return [:nothing];
-}
-
-:global ISNOTHING do={
-    :return ($1 = [$NOTHING]);
-}
 
 #Function getFileContents
 #   Param:
@@ -27,7 +20,7 @@
     do {
         :set lContents [/file get [find name=$1] contents];
     } on-error={
-        :return [:nothing];
+        :return $NOTHING;
     }
     :return $lContents;
 }
@@ -44,6 +37,15 @@
     :local vAddressLen ([:len $vAddress]);
     :local vIP 0.0.0.0;
     :local vNetAddress 0.0.0.0;
+    :local lLocateSlash [:find $vAddress "/"];
+    
+    :put "lLocateSlash: $lLocateSlash";
+    
+    :set vIP [:pick $vAddress 0 $lLocateSlash];
+    :put "vIP: $vIP";
+    
+    :set vShift [:pick $vAddress ($lLocateSlash + 1) $vAddressLen];
+    :put "vShift: $vShift";
 
     :for i from=( $vAddressLen - 1) to=0 do={ 
         :if ( [:pick $vAddress $i] = "/") do={ 

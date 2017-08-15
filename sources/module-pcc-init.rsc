@@ -1,4 +1,4 @@
-#Version: 1.0
+#Version: 2.0 beta
 #Fecha: 20-04-2017
 #RouterOS 6.38
 #Comentario:
@@ -8,7 +8,7 @@
 :local lModuleName "module-pcc-init";
 :local lConfigName "config-module-pcc-init";
 
-:if (!([$loadConfig $lConfigName])) do={
+:if ([$loadConfig $lConfigName] != 0) do={
     $setModuleStatusLoad $lModuleName ("ERROR: En modulo $lModuleName cargando $lConfigName.");
     return -1;
 }

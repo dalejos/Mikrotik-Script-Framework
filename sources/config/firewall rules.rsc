@@ -1,4 +1,4 @@
-#Version: 1.0
+#Version: 2.0 beta
 #Fecha: 20-04-2017
 #RouterOS 6.38
 
@@ -20,5 +20,7 @@
 }
 
 /ip firewall nat {
-    add action=dst-nat chain=dstnat in-interface=WAN01 protocol=tcp dst-port=8291 to-addresses=192.168.50.1 to-ports=8291
+    add action=dst-nat chain=dstnat in-interface=WAN01 protocol=tcp dst-port=3389 to-addresses=192.168.10.10 to-ports=3389
 }
+
+:put "OK...";

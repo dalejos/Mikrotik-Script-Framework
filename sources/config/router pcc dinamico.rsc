@@ -1,6 +1,16 @@
-#Version: 1.0
-#Fecha: 20-04-2017
-#RouterOS 6.38
+#Version: 2.0 beta
+#Fecha: 24-04-2017
+#RouterOS 6.38.5
+
+:local lCIRDLen "24";
+:local lAddress "192.168.10.1";
+:local lNetwork "192.168.10.0";
+:local lCIRDAddress "$lAddress/$lCIRDLen";
+:local lCIRDNetwork "$lNetwork/$lCIRDLen";
+:local lDHCPServerRange "192.168.10.101-192.168.10.199";
+:local lDHCPServerGateway "$lAddress";
+:local lDHCPServerDNS "$lAddress";
+:local lDNSServer "8.8.8.8,8.8.4.4";
 
 /interface ethernet {
     set [ find default-name=ether1 ] comment="WAN 01" name=WAN01;
@@ -18,11 +28,12 @@
 }
 
 /ip address {
-    add address=192.168.1.1/24 network=192.168.1.0 interface=LAN01 comment="IP interface LAN01";
+    #add address=$lCIRDAddress network=$lNetwork interface=LAN01 comment="IP interface LAN01";
+    add address=$lCIRDAddress interface=LAN01 comment="IP interface LAN01";
 }
 
 /ip pool {
-    add name=DHCP_POOL_LAN01 ranges=192.168.1.101-192.168.1.199;
+    add name=DHCP_POOL_LAN01 ranges=$lDHCPServerRange;
 }
 
 /ip dhcp-server {
@@ -30,18 +41,18 @@
 }
 
 /ip dhcp-server network {
-    add address=192.168.1.0/24 dns-server=8.8.8.8,8.8.4.4 gateway=192.168.1.1 comment="Parametros servidor DHCP interface LAN01";
+    add address=$lCIRDNetwork dns-server=$lDHCPServerDNS gateway=$lDHCPServerGateway comment="Parametros servidor DHCP interface LAN01";
 }
 
 /ip firewall nat {
-    add chain=srcnat src-address=192.168.1.0/24 out-interface=WAN01 action=masquerade comment="Masquerade red local a WAN01";
-    add chain=srcnat src-address=192.168.1.0/24 out-interface=WAN02 action=masquerade comment="Masquerade red local a WAN02";
-    add chain=srcnat src-address=192.168.1.0/24 out-interface=WAN03 action=masquerade comment="Masquerade red local a WAN03";
-    add chain=srcnat src-address=192.168.1.0/24 out-interface=WAN04 action=masquerade comment="Masquerade red local a WAN04";
+    add chain=srcnat src-address=$lCIRDAddress out-interface=WAN01 action=masquerade comment="Masquerade red local a WAN01";
+    add chain=srcnat src-address=$lCIRDAddress out-interface=WAN02 action=masquerade comment="Masquerade red local a WAN02";
+    add chain=srcnat src-address=$lCIRDAddress out-interface=WAN03 action=masquerade comment="Masquerade red local a WAN03";
+    add chain=srcnat src-address=$lCIRDAddress out-interface=WAN04 action=masquerade comment="Masquerade red local a WAN04";
 }
 
 /ip dns {
-    set allow-remote-requests=yes cache-max-ttl=1w cache-size=2048KiB max-udp-packet-size=512 servers=8.8.8.8,8.8.4.4
+    set allow-remote-requests=yes cache-max-ttl=1w cache-size=2048KiB max-udp-packet-size=512 servers=$lDNSServer;
 }
 
 /ip firewall mangle {
@@ -96,7 +107,7 @@
         connection-mark=wan4_conn in-interface=LAN01 new-routing-mark=to_wan4
         
     add action=mark-connection chain=prerouting comment=\
-        "Marcar coneccion RDP wan1_nat" dst-port=44902 in-interface=\
+        "Marcar coneccion RDP wan1_nat" dst-port=3389 in-interface=\
         WAN01 new-connection-mark=wan1_nat passthrough=yes protocol=tcp
     add action=mark-routing chain=output comment=\
         "Rutear coneccion NATeada to_wan1" connection-mark=wan1_nat \
@@ -117,4 +128,4 @@
     add dst-address=0.0.0.0/0 gateway=WAN04 routing-mark=to_wan4 check-gateway=ping comment="ID:WAN04";
 }
 
-
+:put "OK...";

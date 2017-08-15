@@ -1,4 +1,4 @@
-#Version: 1.0
+#Version: 2.0 beta
 #Fecha: 20-04-2017
 #RouterOS 6.38
 #Comentario:

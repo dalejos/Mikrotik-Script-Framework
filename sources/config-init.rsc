@@ -1,25 +1,34 @@
-#Version: 1.0
-#Fecha: 20-04-2017
-#RouterOS 6.38
+#Version: 2.0 beta
+#Fecha: 26-04-2017
+#RouterOS 6.38.5
 #Comentario:
 
-:global gConfig;
+:global setLastError;
+:local lConfigName "config-init";
 
 #TODO-BEGIN
 
-:global gModules;
-:global gModules \
+:global gModulesId;
+:set gModulesId \
 { \
-    "module-dyndns"= \
+    "01"="module-functions"; \
+    "02"="module-dyndns"; \
+    "03"="module-pcc-init" \
+};
+
+:global gModules;
+:set gModules \
+{ \
+    "module-functions"= \
     {\
-        "Description"="DynDNS Update."; \
+        "Description"="Funciones Generales."; \
         "Loaded"=false; \
         "Enable"=true; \
         "Status"=""
     }; \
-    "module-functions"= \
+    "module-dyndns"= \
     {\
-        "Description"="Funciones Generales."; \
+        "Description"="DynDNS Update."; \
         "Loaded"=false; \
         "Enable"=true; \
         "Status"=""
@@ -31,11 +40,22 @@
         "Enable"=true; \
         "Status"=""
     } \
-};
+}
 
 :global gScripts;
-:global gScripts \
+:set gScripts \
 { \
+    "init"=\
+    {\
+        "Description"="Inicializacion del MSF."; \
+        "InitRun"=0; \
+        "RunCount"=0; \
+        "Enable"=true; \
+        "StartDate"=""; \
+        "StartTime"="startup"; \
+        "Interval"=0m; \
+        "Status"=""        
+    }; \
     "script-pcc-qos-wan"= \
     {\
         "Description"="PCC QoS para interfaces WAN."; \
@@ -58,8 +78,8 @@
         "Interval"=5m; \
         "Status"=""
     } \
-};
+}
 
 #TODO-END
 
-:set ($gConfig->"Loaded") true;
+$setLastError 0 ("$lConfigName cargado.");

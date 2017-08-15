@@ -1,9 +1,10 @@
-#Version: 1.0 beta
+#Version: 2.0 beta
 #Fecha: 20-04-2017
 #RouterOS 6.38
 #Comentario:
 
-:global gConfig;
+:global setLastError;
+:local lConfigName "config-module-pcc-init";
 
 #TODO-BEGIN
 
@@ -51,7 +52,7 @@
     }; \
     "WAN04"= \
     {\
-        "DHCP"=false; \
+        "DHCP"=true; \
         "IP"=""; \
         "Gateway"=""; \
         "EnableRouting"=false; \
@@ -67,7 +68,7 @@
 :global gPingHost;
 :global gPingHost {"8.8.8.8";"8.8.4.4"};
 
-:global gPingQoS
+:global gPingQoS;
 :global gPingQoS \
 {\
     "PingCount"=10; \
@@ -78,4 +79,4 @@
 
 #TODO-END
 
-:set ($gConfig->"Loaded") true;
+$setLastError 0 ("$lConfigName cargado.");
