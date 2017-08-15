@@ -1,5 +1,5 @@
-#Version: 2.0 beta
-#Fecha: 24-04-2017
+#Version: 2.0
+#Fecha: 15-08-2017
 #RouterOS 6.38.5
 
 :local lCIRDLen "24";
@@ -117,10 +117,10 @@
 #Gestionar Dinamicamente
 
 /ip route {
-    add gateway=WAN01 distance=1 check-gateway=ping comment="ID:WAN01";
-    add gateway=WAN02 distance=2 check-gateway=ping comment="ID:WAN02";
-    add gateway=WAN03 distance=3 check-gateway=ping comment="ID:WAN03";
-    add gateway=WAN04 distance=4 check-gateway=ping comment="ID:WAN04";
+    add gateway=WAN01 distance=1 comment="ID:WAN01";
+    add gateway=WAN02 distance=2 comment="ID:WAN02";
+    add gateway=WAN03 distance=3 comment="ID:WAN03";
+    add gateway=WAN04 distance=4 comment="ID:WAN04";
     
     add dst-address=0.0.0.0/0 gateway=WAN01 routing-mark=to_wan1 check-gateway=ping comment="ID:WAN01";
     add dst-address=0.0.0.0/0 gateway=WAN02 routing-mark=to_wan2 check-gateway=ping comment="ID:WAN02";

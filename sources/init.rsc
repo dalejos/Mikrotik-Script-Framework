@@ -1,6 +1,6 @@
-#Version: 2.0 beta
-#Fecha: 26-04-2017
-#RouterOS 6.38.5
+#Version: 2.0
+#Fecha: 15-08-2017
+#RouterOS 6.38
 #Comentario: Inicializacion de RouterOS.
 
 :global EMPTYARRAY [:toarray ""];

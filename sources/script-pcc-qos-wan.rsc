@@ -1,5 +1,5 @@
-#Version: 2.0 beta
-#Fecha: 20-04-2017
+#Version: 2.0
+#Fecha: 15-08-2017
 #RouterOS 6.38
 #Comentario:
 
@@ -75,6 +75,8 @@ $setScriptInitRun $lScritpName;
                 :set ($fInterface->"EnableRouting") false;
             }
         }
+    } else={
+        [/ip route set [find comment="ID:$kWan"] disabled=yes];
     }
 }
 
