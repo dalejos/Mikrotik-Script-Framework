@@ -1,225 +1,264 @@
-#Version: 2.0
-#Fecha: 15-08-2017
-#RouterOS 6.38
-#Comentario: Inicializacion de RouterOS.
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
+#Comentario: Inicializacion de MSF.
 
+#Constante EMPTYARRAY
+#   Descripcion: Representa un array vacio en MSF.
 :global EMPTYARRAY [:toarray ""];
 
-:global ISEMPTYARRAY do={
+#Function isEmptyArray
+#   Descripcion: Retorna si un array esta vacio o no.
+#   Param:
+#       $1: Un array.
+#   Return: boolean.
+#
+:global isEmptyArray do={
     :global EMPTYARRAY;
     :return ($1 = $EMPTYARRAY);
-};
+}
 
+#Constante NOTHING
+#   Descripcion: Representa el valor de una variable vacia en MSF.
 :global NOTHING [:nothing];
 
-:global ISNOTHING do={
+#Function isNothing
+#   Descripcion: Retorna si una variable esta vacia o no.
+#   Param:
+#       $1: Una variable.
+#   Return: boolean.
+#   
+
+:global isNothing do={
     :global NOTHING;
     :return ($1 = $NOTHING);
-};
+}
 
-:global VERSION "2.0 beta";
+#Constante MSFVERSION
+#   Descripcion: Version del MSF.
+:global MSFVERSION "3.0 alpha";
 
+#Constante ROSVERSION
+#   Descripcion: Version minima de RouterOS para ejecutar MSF.
+:global ROSVERSION "6.40";
+
+#Array lastError
+#   Descripcion: Estructura para el paso de errores entre ejecucion de scripts en MSF.
+#   Keys:
+#       code: Codigo de error.
+#       msg: Mensaje de error.
 :global lastError;
-:set lastError {"Code"=0; "Msg"=""}
+:set lastError {"code"=0; "msg"=""};
 
+#Function setLastError
+#   Descripcion: Establece los valores para el array lastError.
+#   Param:
+#       $1: Codigo de error.
+#       $2: Mensaje de error.
+#   Return:
 :global setLastError do={
     :global lastError;
-    :set ($lastError->"Code") $1;
-    :set ($lastError->"Msg") $2;
+    :set ($lastError->"code") $1;
+    :set ($lastError->"msg") "$2 (codigo $1).";
 }
 
-:global showLastError do={
-    :global lastError;
-    :put ("CODE: " . ($lastError->"Code"));
-    :put ("MSG: " . ($lastError->"Msg"));
+:global logInfo do={
+    :log info message="$1 - $2";
 }
 
-#Function loadConfig
+:global logWarning do={
+    :log warning message="$1 - $2";
+}
+
+:global logError do={
+    :log error message="$1 - $2";
+}
+
+:global logDebug do={
+    :log debug message="$1 - $2";
+}
+
+#Function loadScript
+#   Descripcion: Carga un script de configuracion.
 #   Param:
-#   $1: Script name
+#      $1: nombre del script.
 #
-:global loadConfig do={
-    :global ISEMPTYARRAY;
+:global loadScript do={
+    :global isEmptyArray;
     :global setLastError;
     :global lastError;
     :local lScriptId [/system script find name=$1];
     
     $setLastError 1 ("Cargando $1...");
-    :if (!([$ISEMPTYARRAY $lScriptId])) do={
+    :if (!([$isEmptyArray $lScriptId])) do={
         do {
             [/system script run $lScriptId];
-            :if (($lastError->"Code") != 0) do={
-                $setLastError 1 ("ERROR: No se pudo cargar $1.");
+            :if (($lastError->"code") != 0) do={
+                $setLastError 2 ("No se pudo cargar $1");
             }
         } on-error={
-            $setLastError 1 ("ERROR: Ejecutando $1.");
+            $setLastError 3 ("Ejecutando $1");
         }
     } else={
-        $setLastError 1 ("ERROR: $1 no instalado.");
+        $setLastError 4 ("No se ha instalado $1");
     }
-    :return ($lastError->"Code");
+    :return ($lastError->"code");
 }
 
-:local lLastErrorCode [$loadConfig "config-init"];
-
-:if ($lLastErrorCode != 0) do={
-    $showLastError;
-    return $lLastErrorCode;
-}
-
-#Function setModuleStatusLoad
+#Function setModuleLoaded
 #   Param:
-#   $1: Module name
-#   $2: Load
-#   $3: Status
+#   $1: Id del modulo
 #
-:global setModuleStatusLoad do={
-    :global gModules;
-    :local lStatus $2;
-    :local lLoad $3;
-    
-    :set ($gModules->"$1"->"Status") $lStatus;
-    :if ([:len $lLoad] = 0) do={
-        :set $lLoad false;
-    }    
-    :set ($gModules->"$1"->"Loaded") $lLoad;
-}
-
-:global setScriptInitRun do={
-    :global gScripts;
-    :local lCount [:tonum ($gScripts->"$1"->"InitRun")];
-    :set lCount ($lCount + 1);
-    :set ($gScripts->"$1"->"InitRun") $lCount;
-}
-
-:global setScriptRunCount do={
-    :global gScripts;
-    :local lCount [:tonum ($gScripts->"$1"->"RunCount")];
-    :set lCount ($lCount + 1);
-    :set ($gScripts->"$1"->"RunCount") $lCount;
-}
-
-:global showModuleStatus do={
-    :global gModulesId;
-    :global gModules;
-    :put "";
-    :foreach kModuleId,fModuleName in=$gModulesId do={
-        :put "Modulo: $kModuleId - $fModuleName";
-        :put ("Descripcion: " . ($gModules->"$fModuleName"->"Description"));
-        :put ("Estado: " . ($gModules->"$fModuleName"->"Status"));
-        :put "";
-    }
-}
-
-:global showScriptStatus do={
-    :global gScripts;
-    :put "";
-    :foreach kScript,fScript in=$gScripts do={
-        :put "Script: $kScript";
-        :put ("Descripcion: " . ($fScript->"Description"));
-        :if ($fScript->"Enable") do={
-            :put ("Init Run: " . ($fScript->"InitRun"));
-            :put ("Run Count: " . ($fScript->"RunCount"));
-            :put ("Intervalo de ejecucion: " . ($fScript->"Interval"));
-            :put ("Status: " . ($fScript->"Status"));
-        } else={
-            :put "Script deshabilitado.";
-        }
-        :put "";
-    }
+:global setModuleLoaded do={
+    :global gModules;    
+    :set ($gModules->"$1"->"loaded") true;
 }
 
 #Cargar modulos
 
 :local loadModules do={
-    :global ISEMPTYARRAY;
-    :global gModulesId;
     :global gModules;    
-    :global setModuleStatusLoad;
+    :global logInfo;
+    :global logError;
+    :global lastError;
+    :global loadScript;
+    :local lScriptName "init.loadModules";
+    :local lErrorCode;
     
-    :foreach kModuleId,fModuleName in=$gModulesId do={        
-        :if ($gModules->"$fModuleName"->"Enable") do={
-            $setModuleStatusLoad $fModuleName ("Cargando modulo $fModuleName...");
-            :local lScriptId [/system script find name=$fModuleName];
-            :if (!([$ISEMPTYARRAY $lScriptId])) do={
-                $setModuleStatusLoad $fModuleName ("ERROR: Modulo $fModuleName no informo haber cargado.");
-                do {
-                    [/system script run $lScriptId];
-                } on-error={
-                    $setModuleStatusLoad $fModuleName ("ERROR: Modulo $fModuleName no se pudo cargar (error de ejecucion).");
+    :foreach kModuleId,fModule in=$gModules do={
+    
+        :if ($fModule->"enable") do={
+            :set lErrorCode 0;
+            
+            :if ($fModule->"config") do={
+                :set lErrorCode [$loadScript ("config-" . ($fModule->"name"))];
+
+                :if ($lErrorCode != 0) do={
+                    $logError $lScriptName (($fModule->"name") . " - " .($lastError->"msg"));
+                } else={
+                    $logInfo $lScriptName ($lastError->"msg");
                 }
-            } else={
-                $setModuleStatusLoad $fModuleName ("ERROR: Modulo $fModuleName no instalado.");
             }
-        } else={
-            $setModuleStatusLoad $fModuleName ("Modulo $fModuleName deshabilitado.");
+            
+            :if ($lErrorCode = 0) do={
+                :set lErrorCode [$loadScript ($fModule->"name")];
+
+                :if ($lErrorCode != 0) do={
+                    $logError $lScriptName ($lastError->"msg");
+                } else={
+                    :set ($gModules->"$kModuleId"->"loaded") true;
+                    $logInfo $lScriptName ($lastError->"msg");
+                }            
+            }            
         }
     }
 }
 
-#Cargar Script
+#Function scheduleScripts
 
 :local scheduleScripts do={
-    :global ISEMPTYARRAY;
+    :global isEmptyArray;
     :global gScripts;
-    
-    :local setScriptStatus do={
-        :global gScripts;
-        :set ($gScripts->"$1"->"Status") $2;
-    }
+    :global logInfo;
+    :global logError;
+    :local lScriptName "init.scheduleScripts";
     
     :foreach kScript,fScript in=$gScripts do={
     
-        :if ($fScript->"Enable") do={
+        :if ($fScript->"enable") do={
             :local lScriptId [/system script find name=$kScript];
             
-            :if (!([$ISEMPTYARRAY $lScriptId])) do={
+            :if (!([$isEmptyArray $lScriptId])) do={
                 :local lSchedulerId ([/system scheduler find name=$kScript]);
                 
-                :if (([$ISEMPTYARRAY $lSchedulerId])) do={
-                    $setScriptStatus $kScript ("Registrando script $kScript...");
-                    [/system scheduler add comment=($fScript->"Description") \
+                :if (([$isEmptyArray $lSchedulerId])) do={
+                    $logInfo $lScriptName ("Registrando script $kScript...");
+                    [/system scheduler add comment=($fScript->"description") \
                                            name=$kScript \
                                            on-event=$kScript \
-                                           start-date=($fScript->"StartDate") \
-                                           start-time=($fScript->"StartTime") \
-                                           interval=($fScript->"Interval")];
+                                           start-date=($fScript->"startDate") \
+                                           start-time=($fScript->"startTime") \
+                                           interval=($fScript->"interval")];
                            
                     :set lScriptId [/system scheduler find name=$kScript];
                     
-                    :if (!([$ISEMPTYARRAY $lScriptId])) do={
-                        $setScriptStatus $kScript ("Script $kScript registrado.");
+                    :if (!([$isEmptyArray $lScriptId])) do={
+                        $logInfo $lScriptName ("Script $kScript registrado.");
                     } else={
-                        $setScriptStatus $kScript ("ERROR: Registrando script $kScript.");
+                        $logError $lScriptName ("Registrando script $kScript.");
                     }                        
                 } else={
-                    $setScriptStatus $kScript ("Script $kScript registrado.");
+                    $logInfo $lScriptName ("Script $kScript registrado.");
                     :local lScheduler ([/system scheduler get $lSchedulerId]);
                     
-                    :if ($lScheduler->"interval" != $fScript->"Interval") do={
-                        [/system scheduler set $lSchedulerId interva=($fScript->"Interval")];
+                    :if ($lScheduler->"interval" != $fScript->"interval") do={
+                        [/system scheduler set $lSchedulerId interva=($fScript->"interval")];
                     }
-                    :if ($lScheduler->"start-date" != $fScript->"StartDate") do={
-                        [/system scheduler set $lSchedulerId start-date=($fScript->"StartDate")];
+                    :if ($lScheduler->"start-date" != $fScript->"startDate") do={
+                        [/system scheduler set $lSchedulerId start-date=($fScript->"startDate")];
                     }
-                    :if ($lScheduler->"start-time" != $fScript->"StartTime") do={
-                        [/system scheduler set $lSchedulerId start-time=($fScript->"StartTime")];
+                    :if ($lScheduler->"start-time" != $fScript->"startTime") do={
+                        [/system scheduler set $lSchedulerId start-time=($fScript->"startTime")];
                     }
-                    :if ($lScheduler->"comment" != $fScript->"Description") do={
-                        [/system scheduler set $lSchedulerId comment=($fScript->"Description")];
+                    :if ($lScheduler->"comment" != $fScript->"description") do={
+                        [/system scheduler set $lSchedulerId comment=($fScript->"description")];
                     }
                 }
             } else={
-                $setScriptStatus $kScript ("ERROR: Script $kScript no instalado.");
+                $logError $lScriptName ("Script $kScript no instalado.");
             }
         } else={
             :local lSchedulerId ([/system scheduler find name=$kScript]);
-            :if (!([$ISEMPTYARRAY $lSchedulerId])) do={
+            :if (!([$isEmptyArray $lSchedulerId])) do={
                 [/system scheduler remove $lSchedulerId];
+                $logInfo $lScriptName ("Script $kScript removido.");
+            } else={
+                $logInfo $lScriptName ("Script $kScript deshabilitado.");
             }
         }
     }
+}
+
+#Function scheduleScripts
+
+:global setScriptStartRun do={
+    :global gScripts;
+    :local lCount [:tonum ($gScripts->"$1"->"startRun")];
+    :set lCount ($lCount + 1);
+    :set ($gScripts->"$1"->"startRun") $lCount;
+}
+
+#Function scheduleScripts
+
+:global setScriptEndRun do={
+    :global gScripts;
+    :local lCount [:tonum ($gScripts->"$1"->"endRun")];
+    :set lCount ($lCount + 1);
+    :set ($gScripts->"$1"->"endRun") $lCount;
+}
+
+
+do {
+#TODO-BEGIN
+
+:local lScriptName "init";
+:local lConfigName "config-init";
+
+:local lErrorCode [$loadScript $lConfigName];
+
+:if ($lErrorCode != 0) do={
+    $logError $lScriptName ($lastError->"msg");
+    :return $lErrorCode;
+} else={
+    $logInfo $lScriptName ($lastError->"msg");
 }
 
 $loadModules;
 $scheduleScripts;
+
+#TODO-END
+
+    $logInfo $lScriptName "MSF cargado.";
+} on-error={
+    $logError $lScriptName "ERROR Cargando MSF.";
+}

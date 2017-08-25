@@ -1,82 +1,86 @@
-#Version: 2.0
-#Fecha: 15-08-2017
-#RouterOS 6.38
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
 #Comentario:
 
 :global setLastError;
-:local lConfigName "config-module-pcc-init";
+:local lScriptName "config-module-pcc-init";
 
 #TODO-BEGIN
 
 :global gWanInterfaces;
-:global gWanInterfaces \
-{ \
-    "WAN01"= \
+:set gWanInterfaces \
+{\
+    "WAN01"=\
     {\
-        "DHCP"=true; \
-        "IP"=""; \
-        "Gateway"=""; \
-        "EnableRouting"=false; \
-        "RoutingMark"="to_wan1"; \
-        "Distance"=1; \
-        "PingTime"=""; \
-        "LastInterfaceCheck"=""; \
-        "LastRoutingCheck"=""; \
-        "Status"=""
-    }; \
-    "WAN02"= \
+        "dhcp"=true;\
+        "ip"="";\
+        "gateway"="";\
+        "enableRouting"=false;\
+        "routingMark"="to_wan1";\
+        "distance"=1;\
+        "pingTime"="";\
+        "lastInterfaceCheck"="";\
+        "lastRoutingCheck"="";\
+        "status"=""\
+    };\
+    "WAN02"=\
     {\
-        "DHCP"=true; \
-        "IP"=""; \
-        "Gateway"=""; \
-        "EnableRouting"=false; \
-        "RoutingMark"="to_wan2"; \
-        "Distance"=2; \
-        "PingTime"=""; \
-        "LastInterfaceCheck"=""; \
-        "LastRoutingCheck"=""; \
-        "Status"=""
-    }; \
-    "WAN03"= \
+        "dhcp"=true;\
+        "ip"="";\
+        "gateway"="";\
+        "enableRouting"=false;\
+        "routingMark"="to_wan2";\
+        "distance"=1;\
+        "pingTime"="";\
+        "lastInterfaceCheck"="";\
+        "lastRoutingCheck"="";\
+        "status"=""\
+    };\
+    "WAN03"=\
     {\
-        "DHCP"=true; \
-        "IP"=""; \
-        "Gateway"=""; \
-        "EnableRouting"=false; \
-        "RoutingMark"="to_wan3"; \
-        "Distance"=3; \
-        "PingTime"=""; \
-        "LastInterfaceCheck"=""; \
-        "LastRoutingCheck"=""; \
-        "Status"=""
-    }; \
-    "WAN04"= \
+        "dhcp"=true;\
+        "ip"="";\
+        "gateway"="";\
+        "enableRouting"=false;\
+        "routingMark"="to_wan3";\
+        "distance"=1;\
+        "pingTime"="";\
+        "lastInterfaceCheck"="";\
+        "lastRoutingCheck"="";\
+        "status"=""\
+    };\
+    "WAN04"=\
     {\
-        "DHCP"=true; \
-        "IP"=""; \
-        "Gateway"=""; \
-        "EnableRouting"=false; \
-        "RoutingMark"="to_wan4"; \
-        "Distance"=4; \
-        "PingTime"=""; \
-        "LastInterfaceCheck"=""; \
-        "LastRoutingCheck"=""; \
-        "Status"=""
-    } \
-};
+        "dhcp"=true;\
+        "ip"="";\
+        "gateway"="";\
+        "enableRouting"=false;\
+        "routingMark"="to_wan4";\
+        "distance"=1;\
+        "pingTime"="";\
+        "lastInterfaceCheck"="";\
+        "lastRoutingCheck"="";\
+        "status"=""\
+    }\
+}
 
 :global gPingHost;
-:global gPingHost {"8.8.8.8";"8.8.4.4"};
+:set gPingHost \
+{\
+    "8.8.8.8";\
+    "8.8.4.4"
+}
 
 :global gPingQoS;
-:global gPingQoS \
+:set gPingQoS \
 {\
-    "PingCount"=10; \
-    "UmbralCount"=7; \
-    "Size"=64; \
-    "Timeout"="500ms"
-};
+    "pingCount"=10;\
+    "umbralCount"=7;\
+    "size"=64;\
+    "timeout"="500ms"
+}
 
 #TODO-END
 
-$setLastError 0 ("$lConfigName cargado.");
+$setLastError 0 ("$lScriptName cargado.");

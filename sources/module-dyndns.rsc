@@ -1,17 +1,10 @@
-#Version: 2.0
-#Fecha: 15-08-2017
-#RouterOS 6.38
-#Comentario:
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
+#Comentario: 
 
-:global loadConfig;
-:local lConfigName "config-module-dyndns";
-:global setModuleStatusLoad;
-:local lModuleName "module-dyndns";
-
-:if ([$loadConfig $lConfigName] != 0) do={
-    $setModuleStatusLoad $lModuleName ("ERROR: En modulo $lModuleName cargando $lConfigName.");
-    return -1;
-}
+:global setLastError;
+:local lScriptName "module-dyndns";
 
 #TODO-BEGIN
 
@@ -66,7 +59,6 @@
 :global getIPFromExternalServer do={
 }
 
-
 #TODO-END
 
-$setModuleStatusLoad $lModuleName ("Modulo $lModuleName Cargado.") true;
+$setLastError 0 ("$lScriptName cargado.");

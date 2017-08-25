@@ -1,18 +1,22 @@
-#Version: 2.0
-#Fecha: 15-08-2017
-#RouterOS 6.38
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
 #Comentario:
 
-:global isScriptRun;
-:global setScriptInitRun;
-:global setScriptRunCount;
+:global isScriptRuning;
+:global setScriptStartRun;
+:global setScriptEndRun;
+:global logInfo;
+:global logError;
+:global logWarning;
 :local lScritpName "script-pcc-qos-wan";
 
-:if ([$isScriptRun $lScritpName]) do={
+:if ([$isScriptRuning $lScritpName]) do={
+    $logWarning $lScritpName "Script corriendo.";
     return 255;
 }
 
-$setScriptInitRun $lScritpName;
+$setScriptStartRun $lScritpName;
 
 #TODO-BEGIN
 
@@ -23,10 +27,12 @@ $setScriptInitRun $lScritpName;
 
 :foreach kWan,fInterface in=$gWanInterfaces do={
     
-    :local lGateway ($fInterface->"Gateway");
+    :local lGateway ($fInterface->"gateway");
     :local lAddress;
     
-    :if ($fInterface->"DHCP") do={
+    $logInfo $lScritpName ("Chequeando interface $kWan");
+    
+    :if ($fInterface->"dhcp") do={
         :local lDhcpId [/ip dhcp-client find interface=$kWan];
         :if ([:len $lDhcpId] > 0) do={
             :set lGateway [/ip dhcp-client get $lDhcpId gateway];
@@ -40,16 +46,16 @@ $setScriptInitRun $lScritpName;
     
     :if ([:len $lGateway] > 0) do={
         :local lQoS false;
-        :put "$kWan Gateway: $lGateway";
+        $logInfo $lScritpName ("$kWan gateway: $lGateway");
         [/ip route set [find comment="ID:$kWan"] gateway="$lGateway%$kWan"];
         
         :local lNetAddress [$getNetAddress $lAddress]
         [/ip firewall mangle set [find comment="ID:$kWan"] dst-address=$lNetAddress];
         
-        :if ( !($fInterface->"EnableRouting")) do={
-            :put "Iniciando ping al gateway $lGateway...";
+        :if ( !($fInterface->"enableRouting")) do={
+            $logInfo $lScritpName ("Iniciando ping al gateway $lGateway...");
             :set lQoS ([$pingQoS $lGateway $kWan "main"]);
-            :put "QoS: $lQoS";
+            $logInfo $lScritpName ("QoS: $lQoS");
             :if ($lQoS) do={
                 [/ip route set [find comment="ID:$kWan"] disabled=no];
                 :delay 3s;
@@ -57,31 +63,30 @@ $setScriptInitRun $lScritpName;
                 #:foreach fHost in=$gPingHost do={
                 #    :set lQoS ([$pingQoS $fHost $kWan ($fInterface->"RoutingMark")]);
                 #}
-                :put "Iniciando ping a 8.8.8.8...";
-                :set lQoS ([$pingQoS "8.8.8.8" $kWan ($fInterface->"RoutingMark")]);
-                :put "QoS: $lQoS";
+                $logInfo $lScritpName ("Iniciando ping a 8.8.8.8...");
+                :set lQoS ([$pingQoS "8.8.8.8" $kWan ($fInterface->"routingMark")]);
+                $logInfo $lScritpName ("QoS: $lQoS");
                 :if ($lQoS) do={
-                    :set ($fInterface->"EnableRouting") true;
+                    :set ($fInterface->"enableRouting") true;
                 } else={
                     [/ip route set [find comment="ID:$kWan"] disabled=yes];
                 }
             }
         } else={
-            :put "Iniciando ping a 8.8.8.8...";
-            :set lQoS ([$pingQoS "8.8.8.8" $kWan ($fInterface->"RoutingMark")]);
-            :put "QoS: $lQoS";
+            $logInfo $lScritpName ("Iniciando ping a 8.8.8.8...");
+            :set lQoS ([$pingQoS "8.8.8.8" $kWan ($fInterface->"routingMark")]);
+            $logInfo $lScritpName ("QoS: $lQoS");
             :if ( !($lQoS)) do={
                 [/ip route set [find comment="ID:$kWan"] disabled=yes];
-                :set ($fInterface->"EnableRouting") false;
+                :set ($fInterface->"enableRouting") false;
             }
         }
     } else={
         [/ip route set [find comment="ID:$kWan"] disabled=yes];
+        $logWarning $lScritpName ("Gateway no encontrado, deshabilitando ruta ID:$kWan");
     }
 }
 
-
 #TODO-END
 
-$setScriptRunCount $lScritpName;
-
+$setScriptEndRun $lScritpName;

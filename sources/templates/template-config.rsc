@@ -4,18 +4,9 @@
 #Comentario:
 
 :global setLastError;
-:local lScriptName "config-module-dyndns";
+:local lScriptName "config-";
 
 #TODO-BEGIN
-
-:global gDynDNS;
-:global gDynDNS \
-{ \
-    "user"=""; \
-    "password"=""; \
-    "host"=""; \
-    "interface"="WAN01"
-};
 
 #TODO-END
 

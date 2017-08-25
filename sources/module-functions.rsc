@@ -1,13 +1,14 @@
-#Version: 2.0
-#Fecha: 15-08-2017
-#RouterOS 6.38
-#Comentario:
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
+#Comentario: Funciones de uso general en MSF.
 
-:global NOTHING;
-:global setModuleStatusLoad;
-:local lModuleName "module-functions";
+:global setLastError;
+:local lScriptName "module-functions";
 
 #TODO-BEGIN
+
+:global NOTHING;
 
 #Function getFileContents
 #   Param:
@@ -57,14 +58,14 @@
     :return "$vNetAddress/$vShift";
 }
 
-#Function isScriptRun
+#Function isScriptRuning
 #   Param:
 #   $1: Nombre del script.
 #
-:global isScriptRun;
-:global isScriptRun do={
-    :local lIsRun ([:len [/system script job find script=$1]] > 1);
-    :return $lIsRun;
+:global isScriptRuning;
+:global isScriptRuning do={
+    :local lIsRuning ([:len [/system script job find script=$1]] > 1);
+    :return $lIsRuning;
 }
 
 #Function createFirewallAddressList
@@ -104,4 +105,4 @@
 
 #TODO-END
 
-$setModuleStatusLoad $lModuleName ("Modulo $lModuleName Cargado.") true;
+$setLastError 0 ("$lScriptName cargado.");

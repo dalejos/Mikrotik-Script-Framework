@@ -1,85 +1,77 @@
-#Version: 2.0
-#Fecha: 15-08-2017
-#RouterOS 6.38.5
-#Comentario:
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
+#Comentario: Configuracion inicial de MSF.
 
 :global setLastError;
-:local lConfigName "config-init";
+:local lScriptName "config-init";
 
 #TODO-BEGIN
 
-:global gModulesId;
-:set gModulesId \
-{ \
-    "01"="module-functions"; \
-    "02"="module-dyndns"; \
-    "03"="module-pcc-init" \
-};
-
 :global gModules;
 :set gModules \
-{ \
-    "module-functions"= \
+{\
+    "01"=\
     {\
-        "Description"="Funciones Generales."; \
-        "Loaded"=false; \
-        "Enable"=true; \
-        "Status"=""
-    }; \
-    "module-dyndns"= \
+        "name"="module-functions";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=false;\
+        "description"="Funciones Generales."\
+    };\
+    "02"=\
     {\
-        "Description"="DynDNS Update."; \
-        "Loaded"=false; \
-        "Enable"=true; \
-        "Status"=""
-    }; \
-    "module-pcc-init"= \
+        "name"="module-dyndns";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=true;\
+        "description"="DynDNS Update."\
+    };\
+    "03"=\
     {\
-        "Description"="Inicializacion de modulo de balanceo por PCC."; \
-        "Loaded"=false; \
-        "Enable"=true; \
-        "Status"=""
-    } \
+        "name"="module-pcc-init";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=true;\
+        "description"="Inicializacion de modulo de balanceo por PCC."\
+    }\
 }
 
 :global gScripts;
 :set gScripts \
-{ \
+{\
     "init"=\
     {\
-        "Description"="Inicializacion del MSF."; \
-        "InitRun"=0; \
-        "RunCount"=0; \
-        "Enable"=true; \
-        "StartDate"=""; \
-        "StartTime"="startup"; \
-        "Interval"=0m; \
-        "Status"=""        
-    }; \
-    "script-pcc-qos-wan"= \
+        "startRun"=0;\
+        "endRun"=0;\
+        "enable"=true;\
+        "startDate"="";\
+        "startTime"="startup";\
+        "interval"=0m;\
+        "description"="Inicializacion del MSF."\
+    };\
+    "script-pcc-qos-wan"=\
     {\
-        "Description"="PCC QoS para interfaces WAN."; \
-        "InitRun"=0; \
-        "RunCount"=0; \
-        "Enable"=true; \
-        "StartDate"=""; \
-        "StartTime"="startup"; \
-        "Interval"=10m; \
-        "Status"=""
-    }; \
-    "script-dyndns"= \
+        "startRun"=0;\
+        "endRun"=0;\
+        "enable"=true;\
+        "startDate"="";\
+        "startTime"="startup";\
+        "interval"=10m;\
+        "description"="PCC QoS para interfaces WAN."\
+    };\
+    "script-dyndns"=\
     {\
-        "Description"="Dyndns Update."; \
-        "InitRun"=0; \
-        "RunCount"=0; \
-        "Enable"=true; \
-        "StartDate"=""; \
-        "StartTime"="startup"; \
-        "Interval"=5m; \
-        "Status"=""
-    } \
+        "startRun"=0;\
+        "endRun"=0;\
+        "enable"=true;\
+        "startDate"="";\
+        "startTime"="startup";\
+        "interval"=5m;\
+        "description"="Dyndns Update."\
+    }\
 }
 
 #TODO-END
 
-$setLastError 0 ("$lConfigName cargado.");
+$setLastError 0 ("$lScriptName cargado.");

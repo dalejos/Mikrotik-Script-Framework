@@ -1,20 +1,12 @@
-#Version: 2.0
-#Fecha: 15-08-2017
-#RouterOS 6.38
-#Comentario:
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
+#Comentario: 
 
-:global loadConfig;
-:global setModuleStatusLoad;
-:local lModuleName "module-pcc-init";
-:local lConfigName "config-module-pcc-init";
-
-:if ([$loadConfig $lConfigName] != 0) do={
-    $setModuleStatusLoad $lModuleName ("ERROR: En modulo $lModuleName cargando $lConfigName.");
-    return -1;
-}
+:global setLastError;
+:local lScriptName "module-pcc-init";
 
 #TODO-BEGIN
-
 :global gWanInterfaces;
 
 #Function pingQoS
@@ -28,10 +20,10 @@
     :global gPingQoS;
     :local lCount 0;
     
-    :for i from=1 to=($gPingQoS->"PingCount") do={
-        :set lCount ([/ping $1 interface $2 routing-table $3 count 1 interval ($gPingQoS->"Timeout") size ($gPingQoS->"Size")] + $lCount);
+    :for i from=1 to=($gPingQoS->"pingCount") do={
+        :set lCount ([/ping $1 interface $2 routing-table $3 count 1 interval ($gPingQoS->"timeout") size ($gPingQoS->"size")] + $lCount);
     }
-    :return ($lCount >= $gPingQoS->"UmbralCount");
+    :return ($lCount >= $gPingQoS->"umbralCount");
 }
 
 :foreach kWan,fInterface in=$gWanInterfaces do={
@@ -40,5 +32,4 @@
 
 #TODO-END
 
-$setModuleStatusLoad $lModuleName ("Modulo $lModuleName Cargado.") true;
-
+$setLastError 0 ("$lScriptName cargado.");
