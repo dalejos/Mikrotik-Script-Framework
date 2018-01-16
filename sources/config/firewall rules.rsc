@@ -12,7 +12,6 @@
     add chain=input action=drop in-interface=WAN03 comment="Rechazar los paquetes de la WAN03"
     add chain=input action=drop in-interface=WAN04 comment="Rechazar los paquetes de la WAN04"
     
-    add chain=forward action=fasttrack-connection connection-state=established,related comment="Usar fasttrack"
     add chain=forward action=accept connection-state=established,related comment="Aceptar conexiones con estado stablished, related"
     add chain=forward action=drop connection-state=invalid comment="Rechazar paquetes invalidados."
     add chain=forward action=drop connection-state=new connection-nat-state=!dstnat in-interface=WAN01 comment="Rechazar los paquetes de la WAN01 que no estan NATeados"
