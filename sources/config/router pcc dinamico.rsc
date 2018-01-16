@@ -1,6 +1,6 @@
-#Version: 2.0
-#Fecha: 15-08-2017
-#RouterOS 6.38.5
+#Version: 3.0 alpha
+#Fecha: 16-01-2018
+#RouterOS 6.4x
 
 :local lCIRDLen "24";
 :local lAddress "192.168.10.1";
@@ -20,6 +20,17 @@
     set [ find default-name=ether5 ] comment="LAN 01" name=LAN01;
 }
 
+/interface list {
+    add name=WAN
+}
+
+/interface list member {
+    add interface=WAN01 list=WAN
+    add interface=WAN02 list=WAN
+    add interface=WAN03 list=WAN
+    add interface=WAN04 list=WAN
+}
+
 /ip dhcp-client {
     add dhcp-options=hostname,clientid disabled=no add-default-route=no interface=WAN01 comment="Cliente DHCP interface WAN01";
     add dhcp-options=hostname,clientid disabled=no add-default-route=no interface=WAN02 comment="Cliente DHCP interface WAN02";
@@ -28,7 +39,6 @@
 }
 
 /ip address {
-    #add address=$lCIRDAddress network=$lNetwork interface=LAN01 comment="IP interface LAN01";
     add address=$lCIRDAddress interface=LAN01 comment="IP interface LAN01";
 }
 
