@@ -7,7 +7,7 @@
 
 :global gScripts;
 :put "";
-:put "########## Tool Script Status ##########";
+:put "########## Script Status ##########";
 :put "";
 :foreach kScript,fScript in=$gScripts do={
     :put "Script: $kScript";
@@ -21,6 +21,5 @@
     }
     :put "";
 }
-
 
 #TODO-END

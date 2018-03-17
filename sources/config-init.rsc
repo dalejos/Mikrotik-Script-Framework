@@ -22,7 +22,7 @@
     "02"=\
     {\
         "name"="module-dyndns";\
-        "enable"=true;\
+        "enable"=false;\
         "loaded"=false;\
         "config"=true;\
         "description"="DynDNS Update."\
@@ -30,10 +30,18 @@
     "03"=\
     {\
         "name"="module-pcc-init";\
-        "enable"=true;\
+        "enable"=false;\
         "loaded"=false;\
         "config"=true;\
         "description"="Inicializacion de modulo de balanceo por PCC."\
+    };\
+    "04"=\
+    {\
+        "name"="module-geoip";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=false;\
+        "description"="Herramienta para localizar IP geograficamente"\
     }\
 }
 
