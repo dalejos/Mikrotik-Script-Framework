@@ -26,7 +26,7 @@
                  "msg"=""};
                  
     :local lFetch false;
-    :local lUrl "http://ip-api.com/csv/$lIP?fields=status,country,countryCode,query";
+    :local lUrl "http://ip-api.com/csv/$lIP?fields=status,country,countryCode,message,query";
     :local lFileName "geoip.csv";
     
     do {
@@ -40,21 +40,24 @@
         :local lContents [$getFileContents $lFileName];
         :if ($lContents = [:nothing]) do={
             :set lContents "Geo IP ERROR: No se pudo obtener el contenido del archivo.";
-        }
-        :if ($lContents~"success") do={
-            :set ($result->"success") true;
-            
-            :set $lContents [:pick $lContents ([:find $lContents ","]+1) [:len $lContents]];
-            :set ($result->"country") [:pick $lContents 0 ([:find $lContents ","])];
-            
-            :set $lContents [:pick $lContents ([:find $lContents ","]+1) [:len $lContents]];
-            :set ($result->"countryCode") [:pick $lContents 0 ([:find $lContents ","])];
-            
-            :set $lContents [:pick $lContents ([:find $lContents ","]+1) [:len $lContents]];
-            :set ($result->"ip") $lContents;
         } else={
-        
-        }                
+            :set lContents [:toarray $lContents];
+            
+            :if ([:typeof $lContents] = "array") do={
+                :if ([:pick $lContents 0] = "success") do={
+                    :set ($result->"success") true;                
+                    :set ($result->"country") [:pick $lContents 1];
+                    :set ($result->"countryCode") [:pick $lContents 2];
+                    :set ($result->"ip") [:pick $lContents 3];
+                } else={
+                    :set ($result->"success") false;
+                    :set ($result->"msg") [:pick $lContents 1];
+                    :set ($result->"ip") [:pick $lContents 2];
+                }
+            } else={
+            
+            }
+        }
     }    
         
     :return $result;    
