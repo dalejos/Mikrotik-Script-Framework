@@ -41,7 +41,31 @@
         "enable"=true;\
         "loaded"=false;\
         "config"=false;\
-        "description"="Herramienta para localizar IP geograficamente"\
+        "description"="Herramienta para localizar IP geograficamente."\
+    };\
+    "05"=\
+    {\
+        "name"="module-hex";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=false;\
+        "description"="Funciones manejo de hexadecimal."\
+    };\
+    "06"=\
+    {\
+        "name"="module-sha1";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=false;\
+        "description"="Funciones sha1 digest."\
+    };\
+    "07"=\
+    {\
+        "name"="module-hmac";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=false;\
+        "description"="Funciones hmac."\
     }\
 }
 

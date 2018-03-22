@@ -1,18 +1,12 @@
-#:global getHexFromByte;
-#:global getHexFromByte do={
-#    :local HEXDIGITS "0123456789ABCDEF";
-#    :local byte [:tonum $1];
-#    :local hex "";
-#    :local index 0;
-#    
-#    if ([:typeof $byte] = "num") do={
-#        :set index (($byte>>4)&0xF);
-#        :set hex [:pick $HEXDIGITS $index];
-#        :set index (($byte>>0)&0xF);
-#        :set hex ($hex . [:pick $HEXDIGITS $index]);
-#    }
-#    :return $hex;
-#}
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
+#Comentario: 
+
+:global setLastError;
+:local lScriptName "module-sha1";
+
+#TODO-BEGIN
 
 :global printByteArrayToHex;
 :global printByteArrayToHex do={
@@ -333,3 +327,7 @@
     
     :return $digest;
 }
+
+#TODO-END
+
+$setLastError 0 ("$lScriptName cargado.");
