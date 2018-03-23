@@ -1,3 +1,13 @@
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
+#Comentario: 
+
+:global setLastError;
+:local lScriptName "module-time";
+
+#TODO-BEGIN
+
 :global getCurrentTimestamp;
 :global getCurrentTimestamp do={
     :local date [/system clock get date];
@@ -59,3 +69,7 @@
     #:put "Timestamp: $timestamp";
     :return $timestamp;    
 }
+
+#TODO-END
+
+$setLastError 0 ("$lScriptName cargado.");
