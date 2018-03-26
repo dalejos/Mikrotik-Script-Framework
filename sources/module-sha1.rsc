@@ -2,26 +2,12 @@
 #Fecha: 22-08-2017
 #RouterOS 6.40 y superior.
 #Comentario: 
+#Requiere: module-arrays, 
 
 :global setLastError;
 :local lScriptName "module-sha1";
 
 #TODO-BEGIN
-
-:global printByteArrayToHex;
-:global printByteArrayToHex do={
-    :global getHexFromByte;
-    :local array $1;
-    :local str "";
-    :local hex "";
-    #:put $array;
-    :for index from=0 to=([:len $array] - 1) do={
-        :set hex [$getHexFromByte ($array->$index)];
-        #:put $hex;
-        :set str "$str$hex";
-    }
-    :put $str;
-}
 
 :global mod;
 :global mod do={
@@ -32,49 +18,6 @@
     :set resto ($dividendo - $resto);
     :return $resto;
 }
-
-:global getInitializedArray;
-:global getInitializedArray do={
-    :local size $1;
-    :local value [:tonum $2];
-    :local result ({});
-    :for index from=0 to=($size - 1) do={
-        :set result ($result , $value);
-    }
-    :return $result;
-}
-
-#    public static native void arraycopy(Object src,  int  srcPos,
-#                                        Object dest, int destPos,
-#                                        int length);
-
-:global arrayCopy;
-:global arrayCopy do={
-    :local src $1;
-    :local srcPos [:tonum $2];
-    :local dest $3;
-    :local destPos [:tonum $4];
-    :local length [:tonum $5];
-    
-    :for index from=$srcPos to=($srcPos + $length - 1) do={
-        :set ($dest->$destPos) ($src->$index);
-        :set destPos ($destPos + 1);
-    }
-    :return $dest;
-}
-
-:global arrayClone;
-:global arrayClone do={
-    :local src $1;
-    :local dest ({});
-    :local length [:len $src];
-    
-    :for index from=0 to=($length - 1) do={
-        :set dest ($dest , $src->$index);
-    }
-    :return $dest;
-}
-
 
 #Function padTheMessage
 #   Param:
@@ -154,7 +97,7 @@
     :global getInitializedArray;
     :global rotateLeft;
     :global bitInvertion;
-    :global printByteArrayToHex;
+    #:global printByteArrayToHex;
 
     :local work $1;
     :local H $2;
@@ -182,10 +125,10 @@
         :set ($W->$j) [$rotateLeft (($W->($j - 3)) ^ ($W->($j - 8)) ^ ($W->($j - 14)) ^ ($W->($j - 16))) 1];
     }
     
-    :put "W";
-    :put ($W);
-    :put "H";
-    :put ($H);
+    #:put "W";
+    #:put ($W);
+    #:put "H";
+    #:put ($H);
     
 
     :set A ($H->0);
@@ -194,9 +137,9 @@
     :set D ($H->3);
     :set E ($H->4);
     
-    :put "B";
-    :put "$B";
-    :put [$bitInvertion $B];
+    #:put "B";
+    #:put "$B";
+    #:put [$bitInvertion $B];
 
     :for j from= 0 to=19 do={
         :set F (($B & $C) | ([$bitInvertion $B] & $D));
@@ -242,19 +185,19 @@
         :set A $temp;
     }
 
-    :put "A: $A";
-    :put "B: $B";
-    :put "C: $C";
-    :put "D: $D";
-    :put "E: $E";
+    #:put "A: $A";
+    #:put "B: $B";
+    #:put "C: $C";
+    #:put "D: $D";
+    #:put "E: $E";
     :set ($H->0) ((($H->0) + $A) & 0x00000000FFFFFFFF);
     :set ($H->1) ((($H->1) + $B) & 0x00000000FFFFFFFF);
     :set ($H->2) ((($H->2) + $C) & 0x00000000FFFFFFFF);
     :set ($H->3) ((($H->3) + $D) & 0x00000000FFFFFFFF);
     :set ($H->4) ((($H->4) + $E) & 0x00000000FFFFFFFF);
         
-    :put "H";
-    :put $H;
+    #:put "H";
+    #:put $H;
     :return $H;
 }
 
@@ -281,18 +224,18 @@
     :global arrayClone;
     :global processTheBlock;
     :global fill;
-    :global printByteArrayToHex;
+    #:global printByteArrayToHex;
     
     :local data $1;
     :local paddedData [$padTheMessage $data];
     :local paddedLength [:len $paddedData];
 
-    :put "paddedData";
-    [$printByteArrayToHex $paddedData];    
+    #:put "paddedData";
+    #[$printByteArrayToHex $paddedData];    
     
     :local H {0x67452301; 0xEFCDAB89; 0x98BADCFE; 0x10325476; 0xC3D2E1F0};
-    :put "INIT H";
-    :put "$H";
+    #:put "INIT H";
+    #:put "$H";
     #:local H;
     :local K {0x5A827999; 0x6ED9EBA1; 0x8F1BBCDC; 0xCA62C1D6};
 
@@ -302,15 +245,15 @@
         :return ({});
     }
     
-    :put ("paddedLength: " . $paddedLength);
+    #:put ("paddedLength: " . $paddedLength);
     :local passesReq ($paddedLength / 64);
     :local work [$getInitializedArray 64 0];
-    :put ("passesReq: " . $passesReq);
+    #:put ("passesReq: " . $passesReq);
     
     :for passCntr from=0 to=($passesReq - 1) do={
         :set work [$arrayCopy $paddedData (64 * $passCntr) $work 0 64];
-        :put "work";
-        [$printByteArrayToHex $work];    
+        #:put "work";
+        #[$printByteArrayToHex $work];    
         :set H [$processTheBlock $work [$arrayClone $H] $K];
     }
     
@@ -322,8 +265,8 @@
     :set digest [$fill ($H->3) $digest 12];
     :set digest [$fill ($H->4) $digest 16];
     
-    :put "digest";
-    [$printByteArrayToHex $digest];
+    #:put "digest";
+    #[$printByteArrayToHex $digest];
     
     :return $digest;
 }

@@ -45,13 +45,29 @@
     };\
     "05"=\
     {\
+        "name"="module-arrays";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=false;\
+        "description"="Funciones para manejo de arreglos."\
+    };\
+    "06"=\
+    {\
         "name"="module-hex";\
         "enable"=true;\
         "loaded"=false;\
         "config"=false;\
         "description"="Funciones manejo de hexadecimal."\
     };\
-    "06"=\
+    "07"=\
+    {\
+        "name"="module-base32";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=false;\
+        "description"="Funciones Base32."\
+    };\    
+    "08"=\
     {\
         "name"="module-sha1";\
         "enable"=true;\
@@ -59,13 +75,29 @@
         "config"=false;\
         "description"="Funciones sha1 digest."\
     };\
-    "07"=\
+    "09"=\
     {\
         "name"="module-hmac";\
         "enable"=true;\
         "loaded"=false;\
         "config"=false;\
         "description"="Funciones hmac."\
+    };\
+    "10"=\
+    {\
+        "name"="module-time";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=false;\
+        "description"="Funciones timestamp."\
+    };\
+    "11"=\
+    {\
+        "name"="module-totp";\
+        "enable"=true;\
+        "loaded"=false;\
+        "config"=false;\
+        "description"="Funciones TOTP."\
     }\
 }
 

@@ -2,6 +2,7 @@
 #Fecha: 22-08-2017
 #RouterOS 6.40 y superior.
 #Comentario: 
+#Requiere: module-arrays, module-sha1
 
 :global setLastError;
 :local lScriptName "module-hmac";
@@ -13,7 +14,7 @@
     :global sha1;
     :global arrayClone;
     :global getInitializedArray;
-    :global printByteArrayToHex;
+    #:global printByteArrayToHex;
     
     :local key $1;
     :local data $2;

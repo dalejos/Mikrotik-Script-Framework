@@ -1,3 +1,14 @@
+#Version: 3.0 alpha
+#Fecha: 22-08-2017
+#RouterOS 6.40 y superior.
+#Comentario: 
+#Requiere: module-hex
+
+:global setLastError;
+:local lScriptName "module-base32";
+
+#TODO-BEGIN
+
 :global decodeBase32;
 :global decodeBase32 do={
     :global CHARTOBYTE;
@@ -113,3 +124,7 @@
 #a 97
 #z 122
 #= 61
+
+#TODO-END
+
+$setLastError 0 ("$lScriptName cargado.");

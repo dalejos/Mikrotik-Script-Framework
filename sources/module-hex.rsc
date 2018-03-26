@@ -50,6 +50,22 @@ global stringToByteArray do={
     :return $result;
 }
 
+:global printByteArrayToHex;
+:global printByteArrayToHex do={
+    :global getHexFromByte;
+    :local array $1;
+    :local str "";
+    :local hex "";
+    #:put $array;
+    :for index from=0 to=([:len $array] - 1) do={
+        :set hex [$getHexFromByte ($array->$index)];
+        #:put $hex;
+        :set str "$str$hex";
+    }
+    :put $str;
+}
+
+
 #TODO-END
 
 $setLastError 0 ("$lScriptName cargado.");
