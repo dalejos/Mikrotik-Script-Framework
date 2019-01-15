@@ -14,17 +14,35 @@
 
 #Function resolveHost
 #   Param:
-#   $1: Host name
+#   $1: domain-name
+#   $2: server
+#   $3: server-port
 #
 :global resolveHost;
 :global resolveHost do={
-    :local lIp;
+    :local domainName "domain-name=.";
+    :local dnsServer "";
+    :local serverPort "";
+    
+    :if ([:len $1] > 0) do={
+        :set domainName "domain-name=$1";
+        :if ([:len $2] > 0) do={
+            :set dnsServer " server=$2";
+            :if ([:len $3] > 0) do={
+                :set serverPort " server-port=$3";
+            }
+        }
+    }
+    
+    :local command [:parse "[:resolve $domainName$dnsServer$serverPort]"];
+    :local ip;
+    
     do {
-        :set lIp [:resolve $1];
+        :set ip [$command];
     } on-error={
         :return "0";
     }
-    :return $lIp;
+    :return [:toip $ip];
 };
 
 #Function getInterfaceIP
@@ -57,6 +75,29 @@
 #
 :global getIPFromExternalServer;
 :global getIPFromExternalServer do={
+}
+
+#Function resolvePublicIP
+#   Param:
+#   $1: Interface
+#
+#   Resolver ip publica consultando OpenDNS
+:global resolvePublicIP;
+:global resolvePublicIP do={
+    :global resolveHost;
+    
+    :local listName "RESOLVERS-OPENDNS";
+    :local servers [/ip firewall address-list find list=$listName];
+    :local ip "0";
+     
+    :foreach server in=$servers do={
+        :local ipServer [:toip [/ip firewall address-list get $server address]];
+        :set ip [$resolveHost "myip.opendns.com" $ipServer];
+        :if ($ip != "0") do={
+            :return [:toip $ip];
+        }
+    }
+    #:return [:toip [:resolve myip.opendns.com server=208.67.222.222]]
 }
 
 #TODO-END
