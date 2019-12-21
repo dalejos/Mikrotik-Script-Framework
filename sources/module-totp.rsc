@@ -72,7 +72,13 @@
     :set truncatedHash ($truncatedHash & 0x7FFFFFFF);
     :set truncatedHash [$mod $truncatedHash 1000000];
     
-    :return $truncatedHash;
+    :local code [:tostr $truncatedHash];
+    
+    :while ([:len $code] < 6) do={
+        :set code "0$code";
+    }
+    
+    :return $code;
 }
 
 #:global getCurrentTimestamp;
