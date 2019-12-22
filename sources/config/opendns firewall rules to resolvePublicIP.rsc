@@ -1,3 +1,7 @@
+#Haciendo una consulta DNS al dominio myip.opendns.com usando los DNS de opendns obtendremos
+#la ip publica de la interface de salida.
+
+
 /ip firewall address-list
 add address=208.67.222.222 comment=RESOLVER1.OPENDNS.COM list=\
     RESOLVERS-OPENDNS
