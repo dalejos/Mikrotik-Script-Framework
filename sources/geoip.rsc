@@ -1,7 +1,7 @@
-#Version: 3.0 alpha
-#Fecha: 22-12-2019
+#Version: 3.0 alpha.
+#Fecha: 22-12-2019.
 #RouterOS 6.43 y superior.
-#Comentario: 
+#Comentario: Se introduce un delay de 20s luego de realizar 40 consultas al API.
 
 #TODO-BEGIN
 
@@ -15,55 +15,88 @@
         :for index from=$lengthSrc to=$length do={
             :set src ($src . " ");
         }
+    } else={
+        :set src ([:pick $src 0 (length)] . " ");
     }
     :return $src;
 }
 
 
-:local dstAddress ({});
+:local firewallConnections ([]);
 
-:local connections [/ip firewall connection find];
-:local length [:len $connections];
+:local idConnections [/ip firewall connection find];
 
-:for index from=0 to=($length - 1) do={ 
-    :local conn ($connections->$index);
-    :local dstIp [/ip firewall connection get $conn dst-address];
+:put "";
+:put "Cargando conexiones...";
+
+:foreach id in=$idConnections do={
+    :local dstAddress [/ip firewall connection get $id dst-address];
+    :local srcAddress [/ip firewall connection get $id src-address];
+    :local protocol [/ip firewall connection get $id protocol];    
+    :local connection {"dstAddress"=$dstAddress; "srcAddress"=$srcAddress; protocol=$protocol};
     
+    :if (([:len $dstAddress] > 0) and ([:len $srcAddress] > 0)) do={
+        :set firewallConnections ($firewallConnections, {$connection});
+    }
+}
+
+:put ("Nro. de conexiones: " . [:len $firewallConnections]);
+:put "";
+:put ([$format "#" 4] . [$format "SRC. ADDRESS" 22] . [$format "DST. ADDRESS" 22] . [$format "PROTO" 7] \
+. [$format "COUNTRY" 9] . [$format "COUNTRY NAME" 25] . [$format "AS" 10] . [$format "AS NAME" 30]);
+
+:local dstAddressQueryList ([]);
+:local dstAddressQueryResult ([]);
+:local idx 0;
+:local request 0;
+
+:foreach connection in=$firewallConnections do={
+    :local dstAddress ($connection->"dstAddress");
+    :local srcAddress ($connection->"srcAddress");
+    :local protocol ($connection->"protocol");
+    :local data;
+    
+    :local dstIp $dstAddress;
     :local doubleDot [:find $dstIp ":"];
-    
     :if ( $doubleDot > 0) do={ 
         :set dstIp [:pick $dstIp 0 $doubleDot];
     }
-    :if (!([:find $dstAddress $dstIp] >=0)) do={
-        :set dstAddress ($dstAddress, $dstIp);
-    }
-}
-
-:put "";
-:put ([$format "#" 4] . [$format "IP" 16] . [$format "COUNTRY" 10] . [$format "COUNTRY NAME" 25] . [$format "AS NAME" 30]);
-
-:local idx 0;
-:local request 0;
-:foreach dstIp in=$dstAddress do={
-    :local lUrl "http://ip-api.com/csv/$dstIp?fields=status,message,country,countryCode,as,asname,query";
-    :local result;
-    :if ($request > 39) do={
-        :set request 0;
-        :delay 20;
-    }
-    do {
-        :set result [/tool fetch url=$lUrl mode=http as-value output=user];
-        :set request ($request + 1);
-        :local arrayResult [:toarray ($result->"data")];
-        :if ([:typeof $arrayResult] = "array") do={
-            :if ([:pick $arrayResult 0] = "success") do={
-                :set idx ($idx + 1);
-                :put ([$format $idx 4] . [$format $dstIp 16] . [$format ($arrayResult->2) 10] . [$format ($arrayResult->1) 25] . [$format ($arrayResult->4) 30]);
-            }
+    
+    :local indexFind [:find $dstAddressQueryList $dstIp];
+    :if (!($indexFind >=0)) do={
+        :local lUrl "http://ip-api.com/csv/$dstIp?fields=status,message,country,countryCode,as,asname,query";
+        :local result;
+        
+        :if ($request > 39) do={
+            :set request 0;
+            :delay 20;
         }
-    } on-error={
-        :put ([$format $dstIp 16] . " - ERROR");
+        
+        do {
+            :set result [/tool fetch url=$lUrl mode=http as-value output=user];
+            :set request ($request + 1);            
+            :local arrayResult [:toarray ($result->"data")];
+            
+            :if ([:typeof $arrayResult] = "array") do={
+                :if ([:pick $arrayResult 0] = "success") do={
+                    :local as (($arrayResult->3) . " ");
+                    :set as [:pick $as 0 [:find $as " "]];
+                    :set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=($arrayResult->4)};
+                    :set dstAddressQueryList ($dstAddressQueryList, $dstIp);
+                    :set dstAddressQueryResult ($dstAddressQueryResult, {$data});
+                }
+            }
+        } on-error={
+            :put ([$format $dstIp 16] . " - ERROR");
+        }
+    } else={
+        :set data ($dstAddressQueryResult->$indexFind);
     }
+
+    :set idx ($idx + 1);
+    :put ([$format $idx 4] . [$format $srcAddress 22] . [$format $dstAddress 22] . [$format $protocol 7] \
+    . [$format ($data->"countryCode") 9] . [$format ($data->"country") 25] . [$format ($data->"as") 10] . [$format ($data->"asname") 30]);
 }
+
 
 #TODO-END
