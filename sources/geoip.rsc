@@ -73,19 +73,30 @@
         }
         
         do {
-            :set result [/tool fetch url=$lUrl mode=http as-value output=user];
-            :set request ($request + 1);            
-            :local arrayResult [:toarray ($result->"data")];
-            
-            :if ([:typeof $arrayResult] = "array") do={
-                :if ([:pick $arrayResult 0] = "success") do={
-                    :local as (($arrayResult->3) . " ");
-                    :set as [:pick $as 0 [:find $as " "]];
-                    :set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=($arrayResult->4)};
-                    :set dstAddressQueryList ($dstAddressQueryList, $dstIp);
-                    :set dstAddressQueryResult ($dstAddressQueryResult, {$data});
+            :local isPrivate  ((10.0.0.0 = ($dstIp&255.0.0.0)) or (172.16.0.0 = ($dstIp&255.240.0.0)) or  (192.168.0.0 = ($dstIp&255.255.0.0)));
+            :local isReserved ((0.0.0.0 = ($dstIp&255.0.0.0)) or (127.0.0.0 = ($dstIp&255.0.0.0)) or (169.254.0.0 = ($dstIp&255.255.0.0)) \
+            or (224.0.0.0 = ($dstIp&240.0.0.0)) or (240.0.0.0 = ($dstIp&240.0.0.0)));
+            :if ($isPrivate or $isReserved) do={
+                :if ($isPrivate) do={
+                    :set data {"country"=""; "countryCode"="PRIVATE"; "as"=""; "asname"=""};
+                } else={
+                    :set data {"country"=""; "countryCode"="RESERVED"; "as"=""; "asname"=""};
+                }
+            } else={
+                :set result [/tool fetch url=$lUrl mode=http as-value output=user];
+                :set request ($request + 1);            
+                :local arrayResult [:toarray ($result->"data")];
+                
+                :if ([:typeof $arrayResult] = "array") do={
+                    :if ([:pick $arrayResult 0] = "success") do={
+                        :local as (($arrayResult->3) . " ");
+                        :set as [:pick $as 0 [:find $as " "]];
+                        :set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=($arrayResult->4)};
+                    }
                 }
             }
+            :set dstAddressQueryList ($dstAddressQueryList, $dstIp);
+            :set dstAddressQueryResult ($dstAddressQueryResult, {$data});
         } on-error={
             :put ([$format $dstIp 16] . " - ERROR");
         }
