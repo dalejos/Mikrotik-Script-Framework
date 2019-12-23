@@ -1,20 +1,10 @@
 #Version: 3.0 alpha
-#Fecha: 22-08-2017
-#RouterOS 6.40 y superior.
+#Fecha: 22-12-2019
+#RouterOS 6.43 y superior.
 #Comentario: 
-
-#:global setLastError;
-:local lScriptName "module-geoip";
 
 #TODO-BEGIN
 
-:global getGeoIP;
-:global getGeoIP do={
-    :local result;
-    :return $result;    
-}
-
-#TODO-END
 :local format;
 :local format do={
     :local src $1;
@@ -75,4 +65,4 @@
     }
 }
 
-#$setLastError 0 ("$lScriptName cargado.");
+#TODO-END
