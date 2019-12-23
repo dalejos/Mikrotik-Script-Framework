@@ -1,7 +1,7 @@
 #Version: 3.0 alpha.
 #Fecha: 22-12-2019.
 #RouterOS 6.43 y superior.
-#Comentario: Se introduce un delay de 20s luego de realizar 40 consultas al API.
+#Comentario: Se introduce el calculo del delay para el API, 45 consultas por minuto.
 
 #TODO-BEGIN
 
