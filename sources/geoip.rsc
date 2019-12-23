@@ -34,8 +34,9 @@
     :if ( $doubleDot > 0) do={ 
         :set dstIp [:pick $dstIp 0 $doubleDot];
     }
-    
-    :set dstAddress ($dstAddress, $dstIp);
+    :if (!([:find $dstAddress $dstIp] >=0)) do={
+        :set dstAddress ($dstAddress, $dstIp);
+    }
 }
 
 :put "";
