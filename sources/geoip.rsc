@@ -57,12 +57,12 @@
     :local length $2;
     :local lengthSrc [:len $src];
     
-    :if ($lengthSrc < $length) do={
-        :for index from=$lengthSrc to=$length do={
+    :if ($lengthSrc < ($length)) do={
+        :for index from=$lengthSrc to=($length - 1) do={
             :set src ($src . " ");
         }
     } else={
-        :set src ([:pick $src 0 (length)] . " ");
+        :set src ([:pick $src 0 ($length - 1)] . " ");
     }
     :return $src;
 }
@@ -78,7 +78,7 @@
 :put "";
 :put ("Nro. de conexiones: " . [:len $firewallConnections]);
 :put "";
-:put ([$format "#" 4] . [$format "SRC. ADDRESS" 22] . [$format "DST. ADDRESS" 22] . [$format "PROTO" 7] \
+:put ([$format "#" 5] . [$format "SRC. ADDRESS" 22] . [$format "DST. ADDRESS" 22] . [$format "PROTO" 7] \
 . [$format "COUNTRY" 9] . [$format "COUNTRY NAME" 25] . [$format "AS" 10] . [$format "AS NAME" 30]);
 
 :foreach id in=$firewallConnections do={
@@ -89,6 +89,8 @@
     
     :if (([:len $dstAddress] > 0) and ([:len $srcAddress] > 0)) do={
         :local data;
+        :local dnsCache ([]);
+        :local dnsData;
         
         :local dstIp $dstAddress;
         :local doubleDot [:find $dstIp ":"];
@@ -98,6 +100,21 @@
         
         :local indexFind [:find $dstAddressQueryList $dstIp];
         :if (!($indexFind >=0)) do={
+        
+            
+            :foreach idDns in=[/ip dns cache all find data=$dstIp] do={
+                :set dnsData [/ip dns cache all get $idDns];
+#                :put ("DNS: " . ($dnsData->"data"));
+                :set dnsCache ($dnsCache, {$dnsData});
+                
+                :foreach oIdDns in=[/ip dns cache all find data=($dnsData->"name")] do={
+                    :set dnsData [/ip dns cache all get $oIdDns];
+#                    :put ("DNS->: " . ($dnsData->"data"));
+                    :set dnsCache ($dnsCache, {$dnsData});
+                }
+            }
+        
+        
             :local lUrl "http://ip-api.com/csv/$dstIp?fields=status,message,country,countryCode,as,asname,query";
             :local result;
             
@@ -108,9 +125,9 @@
                 or (224.0.0.0 = ($dstIp&240.0.0.0)) or (240.0.0.0 = ($dstIp&240.0.0.0)));
                 :if ($isPrivate or $isReserved) do={
                     :if ($isPrivate) do={
-                        :set data {"country"=""; "countryCode"="PRIVATE"; "as"=""; "asname"=""};
+                        :set data {"country"=""; "countryCode"="PRIVATE"; "as"=""; "asname"=""; "dnsCache"=($dnsCache)};
                     } else={
-                        :set data {"country"=""; "countryCode"="RESERVED"; "as"=""; "asname"=""};
+                        :set data {"country"=""; "countryCode"="RESERVED"; "as"=""; "asname"=""; "dnsCache"=($dnsCache)};
                     }
                 } else={
                     :set result [/tool fetch url=$lUrl mode=http as-value output=user];
@@ -130,7 +147,7 @@
                         :if ([:pick $arrayResult 0] = "success") do={
                             :local as (($arrayResult->3) . " ");
                             :set as [:pick $as 0 [:find $as " "]];
-                            :set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=($arrayResult->4)};
+                            :set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=($arrayResult->4); "dnsCache"=($dnsCache)};
                         }
                     }
                 }
@@ -141,11 +158,18 @@
             }
         } else={
             :set data ($dstAddressQueryResult->$indexFind);
+            :set dnsCache ($data->"dnsCache");
         }
 
         :set idx ($idx + 1);
-        :put ([$format $idx 4] . [$format $srcAddress 22] . [$format $dstAddress 22] . [$format $protocol 7] \
+        :put ([$format $idx 5] . [$format $srcAddress 22] . [$format $dstAddress 22] . [$format $protocol 7] \
         . [$format ($data->"countryCode") 9] . [$format ($data->"country") 25] . [$format ($data->"as") 10] . [$format ($data->"asname") 30]);
+        :if ([:len $dnsCache] > 0) do={
+            :foreach dnsData in=$dnsCache do={
+                :put ([$format ("     type: " . ($dnsData->"type")) 27] . [$format ("name: " . ($dnsData->"name")) 50]);
+            }
+            :put "";
+        }
     }
 }
 
