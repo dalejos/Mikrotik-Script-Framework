@@ -67,7 +67,6 @@
     :return $src;
 }
 
-
 :local dstAddressQueryList ([]);
 :local dstAddressQueryResult ([]);
 :local idx 0;
@@ -104,12 +103,10 @@
             
             :foreach idDns in=[/ip dns cache all find data=$dstIp] do={
                 :set dnsData [/ip dns cache all get $idDns];
-#                :put ("DNS: " . ($dnsData->"data"));
                 :set dnsCache ($dnsCache, {$dnsData});
                 
                 :foreach oIdDns in=[/ip dns cache all find data=($dnsData->"name")] do={
                     :set dnsData [/ip dns cache all get $oIdDns];
-#                    :put ("DNS->: " . ($dnsData->"data"));
                     :set dnsCache ($dnsCache, {$dnsData});
                 }
             }
@@ -135,8 +132,8 @@
                     :if ($request >= 45) do={
                         :set request 0;
                         :local timeToDelay ([$getCurrentTimestamp] - $timeStamp);
-                        :if ($timeToDelay < 62) do={
-                            :delay (62 - $timeToDelay);
+                        :if ($timeToDelay < 65) do={
+                            :delay (65 - $timeToDelay);
                         }
                         :set timeStamp [$getCurrentTimestamp];
                     }
