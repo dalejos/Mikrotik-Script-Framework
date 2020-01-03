@@ -67,24 +67,41 @@
     :return $src;
 }
 
+
+:local globalBlackList "lure_input_blacklist";
+:local tcpBlackList "lure_input_tcp";
+:local udpBlackList "lure_input_udp";
+
 :local dstAddressQueryList ([]);
 :local dstAddressQueryResult ([]);
 :local idx 0;
 :local request 0;
 :local timeStamp [$getCurrentTimestamp];
-:local firewallConnections [/ip firewall address-list find list="lure_input_blacklist"];
+:local blackList [/ip firewall address-list find list="$globalBlackList"];
 
 :put "";
-:put ("Nro. de conexiones: " . [:len $firewallConnections]);
+:put ("Cantidad de IPs en la black list: " . [:len $blackList]);
 :put "";
-:put ([$format "#" 5] . [$format "SRC. ADDRESS" 22] . [$format "DST. ADDRESS" 22] . [$format "PROTO" 7] \
+:put ([$format "#" 5] . [$format "SRC. ADDRESS" 22] . [$format "PROTO" 20] \
 . [$format "COUNTRY" 9] . [$format "COUNTRY NAME" 25] . [$format "AS" 10] . [$format "AS NAME" 30]);
 
-:foreach id in=$firewallConnections do={
+:foreach id in=$blackList do={
     :local connection [/ip firewall address-list get $id];
     :local dstAddress ($connection->"address");
     :local srcAddress ($connection->"address");
     :local protocol "";
+    
+    :if ([:len [/ip firewall address-list find list="$tcpBlackList" address="$srcAddress"]] > 0) do={
+        :set protocol "TCP,";
+    }
+    
+    :if ([:len [/ip firewall address-list find list="$udpBlackList" address="$srcAddress"]] > 0) do={
+        :set protocol "$($protocol)UDP,";
+    }
+    
+    :if ([:len $protocol] > 0) do={
+        :set protocol [:pick $protocol 0 ([:len $protocol]-1)];
+    }
     
     :if (([:len $dstAddress] > 0) and ([:len $srcAddress] > 0)) do={
         :local data;
@@ -159,7 +176,7 @@
         }
 
         :set idx ($idx + 1);
-        :put ([$format $idx 5] . [$format $srcAddress 22] . [$format $dstAddress 22] . [$format $protocol 7] \
+        :put ([$format $idx 5] . [$format $srcAddress 22] . [$format $protocol 20] \
         . [$format ($data->"countryCode") 9] . [$format ($data->"country") 25] . [$format ($data->"as") 10] . [$format ($data->"asname") 30]);
         :if ([:len $dnsCache] > 0) do={
             :foreach dnsData in=$dnsCache do={
