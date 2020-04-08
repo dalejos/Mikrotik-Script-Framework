@@ -8,17 +8,48 @@
 :global telegramBotToken;
 :global telegramChatID;
 
+:local addressType;
+:set addressType do={
+    :local ipAddress [:toip $1];
+    :if ([:len $ipAddress] = 0) do={
+        :return "UNKNOW";
+    }
+    :local isPrivate  ((10.0.0.0 = ($ipAddress&255.0.0.0)) or (172.16.0.0 = ($ipAddress&255.240.0.0)) or  (192.168.0.0 = ($ipAddress&255.255.0.0)));
+    :if ($isPrivate) do={
+        :return "PRIVATE";
+    }
+    :local isReserved ((0.0.0.0 = ($ipAddress&255.0.0.0)) or (127.0.0.0 = ($ipAddress&255.0.0.0)) or (169.254.0.0 = ($ipAddress&255.255.0.0)) \
+        or (224.0.0.0 = ($ipAddress&240.0.0.0)) or (240.0.0.0 = ($ipAddress&240.0.0.0)));
+    :if ($isReserved) do={
+        :return "RESERVED";
+    }
+    :return "PUBLIC";
+}
+
 :local identity [/system identity get name];
 
 :foreach id in=[/user active find] do={
     :local lastIndex [:tonum ("0x" . [:pick $id 1 [:len $id]])];
     :if ($lastUser < $lastIndex) do={
         :set lastUser $lastIndex;
-        :local name [/user active get $id name];
-        :local when [/user active get $id when];
-        :local address [/user active get $id address];
-        :local via [/user active get $id via];
-        :set ($messages->"id-$lastIndex") "*$identity at $when*%0Auser *$name* logged in from *$address* via *$via*";
+        :local userData [/user active get $id];
+        :local name ($userData->"name");
+        :local when ($userData->"when");
+        :local address ($userData->"address");
+        :local via ($userData->"via");
+        :local ipType [$addressType $address];
+        :if ($ipType="PUBLIC") do={
+            :local lUrl "http://ip-api.com/csv/$address?fields=status,message,country,countryCode,as,asname,query";
+            :local result [/tool fetch url=$lUrl mode=http as-value output=user];
+            :local arrayResult [:toarray ($result->"data")];
+            :if ([:typeof $arrayResult] = "array") do={
+                :if ([:pick $arrayResult 0] = "success") do={
+                    :set ipType ($arrayResult->1);
+                }
+            }
+            
+        }
+        :set ($messages->"id-$lastIndex") "*$identity at $when*%0Auser *$name* logged in from *$address ($ipType)* via *$via*";
     }
 }
 
