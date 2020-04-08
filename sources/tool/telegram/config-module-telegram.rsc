@@ -1,0 +1,2 @@
+:global telegramBotToken "XXXXXXXXXX:XXXX_XXXXXXXXXXXXXXXX_XXXXX-XXXXXXX";
+:global telegramChatID "XXXXXXXXX";
