@@ -44,12 +44,17 @@
             :local arrayResult [:toarray ($result->"data")];
             :if ([:typeof $arrayResult] = "array") do={
                 :if ([:pick $arrayResult 0] = "success") do={
-                    :set ipType ($arrayResult->1);
+                    :set ipType "country: *$($arrayResult->2) - $($arrayResult->1)*%0A\
+                                 as: *$($arrayResult->3)*";
                 }
             }
-            
         }
-        :set ($messages->"id-$lastIndex") "*$identity at $when*%0Auser *$name* logged in from *$address ($ipType)* via *$via*";
+        :set ($messages->"id-$lastIndex") "*$identity*%0A\
+                                           at: *$when*%0A\
+                                           user: *$name*%0A\
+                                           from: *$address*%0A\
+                                           via: *$via*%0A\
+                                           $ipType";
     }
 }
 

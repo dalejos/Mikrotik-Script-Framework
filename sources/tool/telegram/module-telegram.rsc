@@ -6,7 +6,7 @@
     :local isSend false;
     do {
         :local result [/tool fetch url=("https://api.telegram.org/bot" . $telegramBotToken . "/sendMessage\?chat_id=" . $telegramChatID \
-            . "&text=" . $telegramMessage . "&parse_mode=Markdown") output=user as-value];
+            . "&text=" . $telegramMessage . "&parse_mode=MarkdownV2") output=user as-value];
         :if (($result->"status") = "finished") do={
             :set isSend (($result->"data")~"\"ok\":true");
         }
