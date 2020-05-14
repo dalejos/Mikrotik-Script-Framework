@@ -2,11 +2,11 @@
     :return 255;
 }
 
-:global lastUser;
-:global messages;
+:global config;
 :global telegramSendMessage;
-:global telegramBotToken;
-:global telegramChatID;
+
+:local botToken ($config->"telegram"->"botToken");
+:local chatID ($config->"telegram"->"chatID");
 
 :local addressType;
 :set addressType do={
@@ -14,12 +14,17 @@
     :if ([:len $ipAddress] = 0) do={
         :return "UNKNOW";
     }
-    :local isPrivate  ((10.0.0.0 = ($ipAddress&255.0.0.0)) or (172.16.0.0 = ($ipAddress&255.240.0.0)) or  (192.168.0.0 = ($ipAddress&255.255.0.0)));
+    :local isPrivate  ((10.0.0.0 = ($ipAddress&255.0.0.0)) \
+                        or (172.16.0.0 = ($ipAddress&255.240.0.0)) \
+                        or  (192.168.0.0 = ($ipAddress&255.255.0.0)));
     :if ($isPrivate) do={
         :return "PRIVATE";
     }
-    :local isReserved ((0.0.0.0 = ($ipAddress&255.0.0.0)) or (127.0.0.0 = ($ipAddress&255.0.0.0)) or (169.254.0.0 = ($ipAddress&255.255.0.0)) \
-        or (224.0.0.0 = ($ipAddress&240.0.0.0)) or (240.0.0.0 = ($ipAddress&240.0.0.0)));
+    :local isReserved ((0.0.0.0 = ($ipAddress&255.0.0.0)) \
+                        or (127.0.0.0 = ($ipAddress&255.0.0.0)) \
+                        or (169.254.0.0 = ($ipAddress&255.255.0.0)) \
+                        or (224.0.0.0 = ($ipAddress&240.0.0.0)) \
+                        or (240.0.0.0 = ($ipAddress&240.0.0.0)));
     :if ($isReserved) do={
         :return "RESERVED";
     }
@@ -30,8 +35,8 @@
 
 :foreach id in=[/user active find] do={
     :local lastIndex [:tonum ("0x" . [:pick $id 1 [:len $id]])];
-    :if ($lastUser < $lastIndex) do={
-        :set lastUser $lastIndex;
+    :if (($config->"telegram"->"activeUsers"->"lastUser") < $lastIndex) do={
+        :set ($config->"telegram"->"activeUsers"->"lastUser") $lastIndex;
         :local userData [/user active get $id];
         :local name ($userData->"name");
         :local when ($userData->"when");
@@ -49,7 +54,7 @@
                 }
             }
         }
-        :set ($messages->"id-$lastIndex") "*$identity*%0A\
+        :set ($config->"telegram"->"activeUsers"->"messages"->"id-$lastIndex") "*$identity*%0A\
                                            at: *$when*%0A\
                                            user: *$name*%0A\
                                            from: *$address*%0A\
@@ -58,10 +63,9 @@
     }
 }
 
-:foreach id,message in=$messages do={
-    :local send [$telegramSendMessage $telegramBotToken $telegramChatID $message];
-    
+:foreach id,message in=($config->"telegram"->"activeUsers"->"messages") do={
+    :local send [$telegramSendMessage $botToken $chatID $message "Markdown"];    
     :if ($send) do={
-        :set ($messages->"$id");
+        :set ($config->"telegram"->"activeUsers"->"messages"->"$id");
     }
 }
