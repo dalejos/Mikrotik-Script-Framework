@@ -17,16 +17,33 @@
         :local update (($jsonResponse->"result"->0));
         :local message (($jsonResponse->"result"->0->"message"));
         :set ($config->"telegram"->"updateId") ($update->"update_id");
+        
         :if (($message->"text") = "/getrbinfo") do={
             :local identity [/system identity get name];
-            :local response "*Identity*%0A\
-                            name: *$identity*%0A%0A\
-                            *Routerboard*%0A";
+            :local response "*Identity*\n\
+                            name: *$identity*\n\n\
+                            *Routerboard*\n";
             :foreach k,v in=[/system routerboard get] do={
-                :set response "$response$k: *$v*%0A";
+                :set response "$response$k: *$v*\n";
             }
             :local send [$telegramSendMessage $botToken $chatID $response "Markdown" ($message->"message_id")];    
         }
         
+        :if (($message->"text") = "/getwirelessinfo") do={
+            :local response "";
+            :foreach id in=[/interface wireless find] do={
+                :local wl [/interface wireless get $id];
+                :set response "*Interface*\n\
+                                name: *$($wl->"name")*\n\n\
+                                *Monitor*\n";
+                :local wlMonitor [/interface wireless monitor $id once as-value];
+                :foreach k,v in=$wlMonitor do={
+                    :if ($k!=".id") do={
+                        :set response "$response$k: *$v*\n";
+                    }
+                }
+            }
+            :local send [$telegramSendMessage $botToken $chatID $response "Markdown" ($message->"message_id")];    
+        }
     }
 }

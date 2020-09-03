@@ -49,16 +49,16 @@
             :local arrayResult [:toarray ($result->"data")];
             :if ([:typeof $arrayResult] = "array") do={
                 :if ([:pick $arrayResult 0] = "success") do={
-                    :set ipType "country: *$($arrayResult->2) - $($arrayResult->1)*%0A\
+                    :set ipType "country: *$($arrayResult->2) - $($arrayResult->1)*\n\
                                  as: *$($arrayResult->3)*";
                 }
             }
         }
-        :set ($config->"telegram"->"activeUsers"->"messages"->"id-$lastIndex") "*$identity*%0A\
-                                           at: *$when*%0A\
-                                           user: *$name*%0A\
-                                           from: *$address*%0A\
-                                           via: *$via*%0A\
+        :set ($config->"telegram"->"activeUsers"->"messages"->"id-$lastIndex") "*$identity*\n\
+                                           at: *$when*\n\
+                                           user: *$name*\n\
+                                           from: *$address*\n\
+                                           via: *$via*\n\
                                            $ipType";
     }
 }
