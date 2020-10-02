@@ -24,9 +24,10 @@
     :return $hex;
 }
 
+{
 :local hex "";
 :local cr "\r\n";
-:local function ("{:local CHARBYTE ({});");
+:local function ("{:local CHARBYTE [:toarray \"\"];");
 :for i from=0x00 to=0xFF do={
     :set hex [$getHexFromByte $i];
     :set function ($function . $cr . (":set (\$CHARBYTE->\"\\$hex\") 0x$hex;"));
@@ -36,7 +37,7 @@
 
 :global CHARTOBYTE;
 :set CHARTOBYTE [$function];
-
+}
 global stringToByteArray;
 global stringToByteArray do={
     :global CHARTOBYTE;

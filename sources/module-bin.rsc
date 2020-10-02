@@ -13,7 +13,7 @@
     :local num [:tonum $1];
     :local bin "";
     
-    :if ([typeof $num] = "num") do={
+    :if ([:typeof $num] = "num") do={
         :if ($num > 0) do={
             :while ($num > 0) do={
                 :local bit ($num & 0x0000000000000001);
