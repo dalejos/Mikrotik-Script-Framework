@@ -10,9 +10,11 @@
 
 :local identity [/system identity get name];
 
+:local list ($config->"telegram"->"routes"->"list");
+:local messages ($config->"telegram"->"routes"->"messages");
+
 :foreach id in=[/ip route find where comment~"MAIN"] do={
 	:local route [/ip route get $id];
-	:local comment ($route->"comment");
 	:local icon "\F0\9F\98\81";
 	:set icon "\E2\9C\85";
 	:if (!($route->"active")) do={
@@ -20,7 +22,10 @@
 		:set icon "\E2\9D\8C";
 	}
 	:local index [:tonum ("0x" . [:pick $id 1 [:len $id]])];
-	:if ([:len ($config->"telegram"->"routes"->"R$index")] = 0) do={
+    
+
+    
+	:if ([:len ($list->"id-$index")] = 0) do={
 		:local identity [/system identity get name];
 		:local message "*Identity*\n\
 					   name: *$identity*\n\n\
@@ -30,12 +35,12 @@
 				:set message "$message$k: *$v*\n";
 			}
 		}			
-		:local send [$telegramSendMessage $botToken $chatID $message "Markdown"];
-		:if ($send) do={
-			:set ($config->"telegram"->"routes"->"R$index") ($route->"active");
-		}
+        :set ($list->"id-$index") ($route->"active");
+        :local length ([:len $messages] + 1);
+        :set ($messages->"id-$length") $message;
+        
 	} else={
-		:if (($config->"telegram"->"routes"->"R$index") != ($route->"active")) do={
+		:if (($list->"id-$index") != ($route->"active")) do={
             :local identity [/system identity get name];
             :local message "*Identity*\n\
                            name: *$identity*\n\n\
@@ -44,11 +49,19 @@
 				:if ($k!=".id") do={
 					:set message "$message$k: *$v*\n";
 				}
-			}			
-			:local send [$telegramSendMessage $botToken $chatID $message "Markdown"];
-			:if ($send) do={
-				:set ($config->"telegram"->"routes"->"R$index") ($route->"active");
 			}
+            :set ($list->"id-$index") ($route->"active");
+            :local length ([:len $messages] + 1);
+            :set ($messages->"id-$length") $message;
 		}
 	}
+}
+:set ($config->"telegram"->"routes"->"list") $list;
+:set ($config->"telegram"->"routes"->"messages") $messages;
+
+:foreach id,message in=($config->"telegram"->"routes"->"messages") do={
+    :local send [$telegramSendMessage $botToken $chatID $message "Markdown"];    
+    :if ($send) do={
+        :set ($config->"telegram"->"routes"->"messages"->"$id");
+    }
 }

@@ -4,5 +4,5 @@
 }
 
 :if ([:typeof ($config->"telegram")] = "array" ) do={
-    :set ($config->"telegram"->"routes") [:toarray ""];
+    :set ($config->"telegram"->"routes") {"list"=[:toarray ""]; "messages"=[:toarray ""]};
 }

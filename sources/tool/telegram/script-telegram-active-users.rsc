@@ -54,7 +54,7 @@
                 }
             }
         }
-        :set ($config->"telegram"->"activeUsers"->"messages"->"id-$lastIndex") "*$identity*\n\
+        :set ($config->"telegram"->"activeUsers"->"messages"->"id-$lastIndex") "*Login on: $identity*\n\n\
                                            at: *$when*\n\
                                            user: *$name*\n\
                                            from: *$address*\n\
