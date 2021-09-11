@@ -39,21 +39,10 @@
         :setb padLength (128 - $tailLength);
     }
     
-#    :local thePad ({0x80});
-#    :for index from=1 to=($padLength - 1) do={
-#        :set thePad ($thePad , 0x00);
-#    }
-    
     :local thePad [$getInitializedArray $padLength 0];
     :set ($thePad->0) 0x80;
     
-#    :put $data;
-#    :put $thePad;
-    
     :local lengthInBits ($origLength * 8);
-#    :put "origLength: $origLength";
-#    :put "lengthInBits: $lengthInBits";
-#    :put (($lengthInBits >> (8 * 0)) & 0xF);
     
     :local index 0;
     
@@ -62,20 +51,6 @@
         :set ($thePad->$index) (($lengthInBits >> (8 * cnt)) & 0x000000000000FF);
     }
     
-#    :put $data;
-#    :put $thePad;
-    
-#    :local result ({});
-#    :set index 0;
-#    :for i from=0 to=([:len $data] - 1) do={
-#        :set result ($result , $data->$i);
-#        :set index ($index + 1);
-#    }
-#    
-#    :for i from=0 to=([:len $thePad] - 1) do={
-#        :set result ($result , $thePad->$i);
-#        :set index ($index + 1);
-#    }
     :return ($data , $thePad);
 }
 
@@ -97,7 +72,6 @@
     :global getInitializedArray;
     :global rotateLeft;
     :global bitInvertion;
-    #:global printByteArrayToHex;
 
     :local work $1;
     :local H $2;
@@ -124,12 +98,6 @@
     :for j from=16 to=79 do={
         :set ($W->$j) [$rotateLeft (($W->($j - 3)) ^ ($W->($j - 8)) ^ ($W->($j - 14)) ^ ($W->($j - 16))) 1];
     }
-    
-    #:put "W";
-    #:put ($W);
-    #:put "H";
-    #:put ($H);
-    
 
     :set A ($H->0);
     :set B ($H->1);
@@ -137,10 +105,6 @@
     :set D ($H->3);
     :set E ($H->4);
     
-    #:put "B";
-    #:put "$B";
-    #:put [$bitInvertion $B];
-
     :for j from= 0 to=19 do={
         :set F (($B & $C) | ([$bitInvertion $B] & $D));
         :set temp (([$rotateLeft $A 5] + $F + $E + ($K->0) + ($W->$j)) & 0x00000000FFFFFFFF );
@@ -185,19 +149,12 @@
         :set A $temp;
     }
 
-    #:put "A: $A";
-    #:put "B: $B";
-    #:put "C: $C";
-    #:put "D: $D";
-    #:put "E: $E";
     :set ($H->0) ((($H->0) + $A) & 0x00000000FFFFFFFF);
     :set ($H->1) ((($H->1) + $B) & 0x00000000FFFFFFFF);
     :set ($H->2) ((($H->2) + $C) & 0x00000000FFFFFFFF);
     :set ($H->3) ((($H->3) + $D) & 0x00000000FFFFFFFF);
     :set ($H->4) ((($H->4) + $E) & 0x00000000FFFFFFFF);
         
-    #:put "H";
-    #:put $H;
     :return $H;
 }
 
@@ -224,19 +181,12 @@
     :global arrayClone;
     :global processTheBlock;
     :global fill;
-    #:global printByteArrayToHex;
     
     :local data $1;
     :local paddedData [$padTheMessage $data];
     :local paddedLength [:len $paddedData];
 
-    #:put "paddedData";
-    #[$printByteArrayToHex $paddedData];    
-    
     :local H {0x67452301; 0xEFCDAB89; 0x98BADCFE; 0x10325476; 0xC3D2E1F0};
-    #:put "INIT H";
-    #:put "$H";
-    #:local H;
     :local K {0x5A827999; 0x6ED9EBA1; 0x8F1BBCDC; 0xCA62C1D6};
 
     :local paddedMod [$mod $paddedLength 64];
@@ -245,15 +195,11 @@
         :return ({});
     }
     
-    #:put ("paddedLength: " . $paddedLength);
     :local passesReq ($paddedLength / 64);
     :local work [$getInitializedArray 64 0];
-    #:put ("passesReq: " . $passesReq);
     
     :for passCntr from=0 to=($passesReq - 1) do={
         :set work [$arrayCopy $paddedData (64 * $passCntr) $work 0 64];
-        #:put "work";
-        #[$printByteArrayToHex $work];    
         :set H [$processTheBlock $work [$arrayClone $H] $K];
     }
     
@@ -264,9 +210,6 @@
     :set digest [$fill ($H->2) $digest 8];
     :set digest [$fill ($H->3) $digest 12];
     :set digest [$fill ($H->4) $digest 16];
-    
-    #:put "digest";
-    #[$printByteArrayToHex $digest];
     
     :return $digest;
 }

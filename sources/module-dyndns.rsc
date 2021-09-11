@@ -75,6 +75,18 @@
 #
 :global getIPFromExternalServer;
 :global getIPFromExternalServer do={
+	:local onError true;
+	:local result;
+
+	:while ($onError) do={
+		do {
+			:set result [/tool fetch url=http://checkip.dyndns.org/ as-value output=user];
+			:set onError false;
+		} on-error={
+		}
+	}
+	:local data ($result->"data");
+	:return [:pick $data ([:find $data "Current IP Address: " -1] + 20) [:find $data "</body>" -1]];
 }
 
 #Function resolvePublicIP

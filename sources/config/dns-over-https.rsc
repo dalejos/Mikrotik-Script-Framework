@@ -1,3 +1,54 @@
+
+{
+    :local body "";
+    :foreach int in=[/log find] do={
+        :local logItem [/log get $int];
+        :set body ("$body\r\n" . ($logItem->"message"));
+        :set body ("$body\r\n" . ($logItem->"time"));
+    }
+
+    :put $body;
+}
+
+
+{
+    :local message "";
+    :foreach id in=[/log find] do={
+        :local logItem [/log get $id];
+        :foreach k,v in=$logItem do={
+            :if ($k!=".id") do={
+                :set message "$message $v";
+            }
+        }
+        :set message "$message\r\n";
+    }
+    :put $message;
+}
+
+{
+    :local body "";
+    :foreach id in=[/log find] do={
+        :local logItem [/log get $id];
+        :foreach k,v in=$logItem do={
+            :set body "$body $v";
+        }
+        :set body "$body\r\n";
+    }
+    :put $body;
+}
+
+        :foreach k,v in=[/log get $id] do={
+            :set body ($body . $v);
+        }
+        :set body "$body\r\n";
+
+
+
+
+
+
+
+
 # jul/17/2020 19:38:00 by RouterOS 6.48beta12
 # software id = 3615-9B9N
 #
