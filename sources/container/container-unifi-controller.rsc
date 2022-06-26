@@ -12,10 +12,10 @@
 
 #CONTAINER
 :local container ({});
-:set ($container->"name") "pihole";
-:set ($container->"file") "";
-:set ($container->"remote-image") "pihole/pihole:latest";
-:set ($container->"address") "10.11.12.2";
+:set ($container->"name") "unifi-controller";
+:set ($container->"file") "disk3/images/unifi-controller.tar";
+:set ($container->"remote-image") "linuxserver/unifi-controller:latest";
+:set ($container->"address") "10.11.12.9";
 :set ($container->"cmd") "";
 :set ($container->"entrypoint") "";
 :set ($container->"domain-name") "docker.lan";
@@ -29,14 +29,10 @@
 
 #ENVIROMENT
 :local enviroment ({});
-:set ($enviroment->"TZ") "America/Caracas";
-:set ($enviroment->"WEBPASSWORD") "123456";
-:set ($enviroment->"DNSMASQ_USER") "root";
 
 #MOUNTS
 :local mounts ({});
-:set ($mounts->"etc") "/etc/pihole";
-:set ($mounts->"etc-dnsmasq.d") "/etc/dnsmasq.d";
+:set ($mounts->"config") "/config";
 
 #REGISTER
 :set ($container->"enviroment") $enviroment;

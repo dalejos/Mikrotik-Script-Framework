@@ -1,84 +1,34 @@
-
-#BRIDGE
-:local bridge ({});
-:set ($bridge->"name") "docker";
-:set ($bridge->"address") "10.11.12.1";
-:set ($bridge->"cidr") "24";
-:set ($bridge->"nat") true;
-
-#DISK
-:local disk ({});
-:set ($disk->"label") "docker";
-:set ($disk->"name") "";
-
-#CONTAINER
-:local container ({});
-:set ($container->"name") "pihole";
-:set ($container->"remote-mage") "pihole/pihole:latest";
-:set ($container->"file") "";
-:set ($container->"address") "10.11.12.2";
-:set ($container->"cmd") "";
-:set ($container->"entrypoint") "";
-:set ($container->"domain-name") "docker.lan";
-:set ($container->"hostname") ($container->"name");
-:set ($container->"logging") yes;
-:set ($container->"stop-signal") "";
-:set ($container->"comment") "";
-:set ($container->"dns") "";
-:set ($container->"workdir") "";
-:set ($container->"re-mount") true;
-
-#ENVIROMENT
-:local enviroment ({});
-:set ($enviroment->"TZ") "America/Caracas";
-:set ($enviroment->"WEBPASSWORD") "123456";
-:set ($enviroment->"DNSMASQ_USER") "root";
-
-#MOUNTS
-:local mounts ({});
-:set ($mounts->"etc") "/etc/pihole";
-:set ($mounts->"etc-dnsmasq.d") "/etc/dnsmasq.d";
-
-#REGISTER
-:set ($container->"enviroment") $enviroment;
-:set ($container->"mounts") $mounts;
-
-:global registerContainer;
-[$registerContainer bridge=$bridge disk=$disk container=$container];
-
+#Version: 7.0
+#Fecha: 26-06-2022
+#RouterOS 7.4beta4 y superior.
+#Comentario: Modulo para registro de containers.
 
 :global registerContainer;
 :set registerContainer do={
 	
-	:if ([:typeof $container] = "array") do{
+	:if (([:typeof $bridge] = "array") && ([:typeof $disk] = "array") && ([:typeof $container] = "array")) do={
 
 
 		#BRIDGE-PARAM
-		:local dockerBridge "docker";
-		:local dockerBridgeAddress "10.11.12.1";
-		:local cidr "24";
+		:local dockerBridge ($bridge->"name");
+		:local dockerBridgeAddress ($bridge->"address");
+		:local cidr ($bridge->"cidr");
 
 		#CONTAINER-PARAM
-		:local diskLabelOrName "docker";
 
-		:local dockerName "pihole";
-		:local remoteImage "pihole/pihole:latest";
-		:local etherAddress "10.11.12.2/$cidr";
+		:local dockerName ($container->"name");
+		:local remoteImage ($container->"remote-image");
+		:local etherAddress (($container->"address") . "/$cidr");
 
-		:local dockerCmd "";
-		:local dockerEntrypoint "";
+		:local dockerCmd ($container->"cmd");
+		:local dockerEntrypoint ($container->"entrypoint");
 
 		#ENVIROMENT-PARAM
-		:local enviroment ({});
-		:set ($enviroment->"TZ") "America/Caracas";
-		:set ($enviroment->"WEBPASSWORD") "123456";
-		:set ($enviroment->"DNSMASQ_USER") "root";
+		:local enviroment ($container->"enviroment");
 
 		#MOUNTS-PARAM
-		:local reMount true;
-		:local mounts ({});
-		:set ($mounts->"etc") "/etc/pihole";
-		:set ($mounts->"etc-dnsmasq.d") "/etc/dnsmasq.d";
+		:local reMount ($container->"re-mount");
+		:local mounts ($container->"mounts");
 
 		#BRIDGE
 		:put "\nIniciando instalacion del docker: $dockerName ($remoteImage).";
@@ -104,9 +54,9 @@
 
 		#CONTAINER
 
-		:local diskId [/disk/find where label=$diskLabelOrName];
+		:local diskId [/disk/find where label=($disk->"label")];
 		:if ([:len $diskId] = 0) do={
-			:local diskId [/disk/find where name=$diskLabelOrName];
+			:local diskId [/disk/find where name=($disk->"name")];
 		}
 
 		:if ([:len $diskId] > 0) do={
@@ -173,7 +123,15 @@
 				}
 
 				:put "\nCreando el contenedor: $dockerName ($remoteImage), root-dir: $installDir.";
-				/container/add remote-image=$remoteImage interface=$etherName root-dir=$installDir mounts=$mountsName envlist=$dockerName \
+				
+				:local fileName "";
+				
+				:if ([:len [/file/find where name=($container->"file")]] > 0) do={
+					:set fileName ($container->"file");
+					:set $remoteImage "";
+				}
+				
+				/container/add remote-image=$remoteImage file=$fileName interface=$etherName root-dir=$installDir mounts=$mountsName envlist=$dockerName \
 				comment=$dockerName logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint;
 				
 				:put "";
@@ -185,8 +143,10 @@
 				:put "No se pudo eliminar el contenedor ($dockerName) intalado previamente, cancelada la instalacion.";
 			}
 		} else={
-			:put "No se encontro disco para instalacion con label/name: $diskLabelOrName.";
+			:put ("No se encontro disco para instalacion con label/name: " . ($disk->"label") . "/" . ($disk->"name") . ".");
 		}
 
+	} else={
+		:put "Por favor verifique los parametros.";
 	}
 }
