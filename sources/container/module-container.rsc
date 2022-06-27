@@ -1,6 +1,6 @@
 #Version: 7.0
 #Fecha: 26-06-2022
-#RouterOS 7.4beta4 y superior.
+#RouterOS 7.4beta5 y superior.
 #Comentario: Modulo para registro de containers.
 
 :global registerContainer;
@@ -42,14 +42,16 @@
 			:local interfaceAddress [/ip/address/get [find where interface=$dockerBridge] address];
 			:put "Bridge configurado previamente: $dockerBridge ($interfaceAddress).";
 		}
+		
+		:if (($bridge->"nat")) do={
+			:local dockerNetwork ([/ip/address/get [find where interface=$dockerBridge] network] . "/$cidr");
 
-		:local dockerNetwork ([/ip/address/get [find where interface=$dockerBridge] network] . "/$cidr");
-
-		:if ([:len [/ip/firewall/nat/find where chain=srcnat action=masquerade src-address=$dockerNetwork]] = 0) do={
-			:put "Creando regla firewall srcnat masquerade: $dockerNetwork.";
-			/ip/firewall/nat/add chain=srcnat action=masquerade src-address=$dockerNetwork;
-		} else={
-			:put "Regla firewall srcnat masquerade configurado previamente: $dockerNetwork.";
+			:if ([:len [/ip/firewall/nat/find where chain=srcnat action=masquerade src-address=$dockerNetwork]] = 0) do={
+				:put "Creando regla firewall srcnat masquerade: $dockerNetwork.";
+				/ip/firewall/nat/add chain=srcnat action=masquerade src-address=$dockerNetwork;
+			} else={
+				:put "Regla firewall srcnat masquerade configurado previamente: $dockerNetwork.";
+			}
 		}
 
 		#CONTAINER
@@ -61,7 +63,8 @@
 
 		:if ([:len $diskId] > 0) do={
 			:local diskName [/disk/get $diskId name];
-			:local rootDir "$diskName/docker";
+			:local rootDir ("$diskName/" . ($disk->"install-dir"));
+			:local imageFile ("$diskName/" . ($disk->"image-dir") . "/" . ($container->"file"));
 			:local installDir "$rootDir/$dockerName/root";
 			:local mountDir "$rootDir/$dockerName/mount";
 
@@ -96,12 +99,11 @@
 				:put "Creando enviroment: $dockerName";
 
 				#ENVIROMENT
-				:foreach id in=[/container/envs/find where list=$dockerName] do={
-					/container/envs/remove $id;
-				}
+				/container/envs/remove [find where name=$dockerName];
+				
 				:foreach k,v in=$enviroment do={
 					:put "Nombre / valor: $k / $v";
-					/container/envs/add list=$dockerName name=$k value=$v;
+					/container/envs/add name=$dockerName key=$k value=$v;
 				}
 
 				#MOUNTS
@@ -122,17 +124,18 @@
 					}
 				}
 
-				:put "\nCreando el contenedor: $dockerName ($remoteImage), root-dir: $installDir.";
-				
-				:local fileName "";
-				
-				:if ([:len [/file/find where name=($container->"file")]] > 0) do={
-					:set fileName ($container->"file");
-					:set $remoteImage "";
+				:put "\nCreando el contenedor: $dockerName, root-dir: $installDir.";
+				:put "Buscando archivo de imagen: $imageFile.";
+								
+				:if ([:len [/file/find where name=$imageFile]] > 0) do={
+					:put "Instalando desde archivo de imagen.";
+					/container/add file=$imageFile interface=$etherName root-dir=$installDir mounts=$mountsName envlist=$dockerName \
+					comment=$dockerName logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint;
+				} else={
+					:put "Archivo de imagen no encontrado, instalando desde imagen remota: $remoteImage.";
+					/container/add remote-image=$remoteImage interface=$etherName root-dir=$installDir mounts=$mountsName envlist=$dockerName \
+					comment=$dockerName logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint;				
 				}
-				
-				/container/add remote-image=$remoteImage file=$fileName interface=$etherName root-dir=$installDir mounts=$mountsName envlist=$dockerName \
-				comment=$dockerName logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint;
 				
 				:put "";
 				/container/print where root-dir=$installDir;

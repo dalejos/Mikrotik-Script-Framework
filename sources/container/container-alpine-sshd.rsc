@@ -14,10 +14,10 @@
 
 #CONTAINER
 :local container ({});
-:set ($container->"name") "grafana";
+:set ($container->"name") "alpine-sshd";
 :set ($container->"file") (($container->"name") . ".tar");
-:set ($container->"remote-image") "grafana/grafana:latest";
-:set ($container->"address") "10.11.12.8";
+:set ($container->"remote-image") "starwarsfan/alpine-sshd:latest";
+:set ($container->"address") "10.11.12.6";
 :set ($container->"cmd") "";
 :set ($container->"entrypoint") "";
 :set ($container->"domain-name") "docker.lan";
@@ -31,6 +31,8 @@
 
 #ENVIROMENT
 :local enviroment ({});
+:set ($enviroment->"ROOT_LOGIN_UNLOCKED") "true";
+:set ($enviroment->"ROOT_PASSWORD") "123456";
 
 #MOUNTS
 :local mounts ({});

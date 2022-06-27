@@ -9,11 +9,13 @@
 :local disk ({});
 :set ($disk->"label") "docker";
 :set ($disk->"name") "";
+:set ($disk->"install-dir") "docker";
+:set ($disk->"image-dir") "images";
 
 #CONTAINER
 :local container ({});
 :set ($container->"name") "unifi-controller";
-:set ($container->"file") "disk3/images/unifi-controller.tar";
+:set ($container->"file") (($container->"name") . ".tar");
 :set ($container->"remote-image") "linuxserver/unifi-controller:latest";
 :set ($container->"address") "10.11.12.9";
 :set ($container->"cmd") "";

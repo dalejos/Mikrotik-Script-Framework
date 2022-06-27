@@ -9,11 +9,13 @@
 :local disk ({});
 :set ($disk->"label") "docker";
 :set ($disk->"name") "";
+:set ($disk->"install-dir") "docker";
+:set ($disk->"image-dir") "images";
 
 #CONTAINER
 :local container ({});
 :set ($container->"name") "pihole";
-:set ($container->"file") "";
+:set ($container->"file") (($container->"name") . ".tar");
 :set ($container->"remote-image") "pihole/pihole:latest";
 :set ($container->"address") "10.11.12.2";
 :set ($container->"cmd") "";
@@ -22,7 +24,7 @@
 :set ($container->"hostname") ($container->"name");
 :set ($container->"logging") yes;
 :set ($container->"stop-signal") "";
-:set ($container->"comment") "";
+:set ($container->"comment") ($container->"name");
 :set ($container->"dns") "";
 :set ($container->"workdir") "";
 :set ($container->"re-mount") true;
