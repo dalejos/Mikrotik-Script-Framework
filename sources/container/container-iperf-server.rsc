@@ -14,8 +14,8 @@
 
 #CONTAINER
 :local container ({});
-:set ($container->"name") "iperf3-server";
-:set ($container->"file") "iperf3.tar";
+:set ($container->"name") "iperf3-alpine-server";
+:set ($container->"file") "iperf3-alpine.tar";
 :set ($container->"remote-image") "taoyou/iperf3-alpine:latest";
 :set ($container->"address") "10.11.12.3";
 :set ($container->"cmd") "";
