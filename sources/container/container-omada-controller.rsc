@@ -14,32 +14,30 @@
 
 #CONTAINER
 :local container ({});
-:set ($container->"name") "mariadb";
+:set ($container->"name") "omaga-controller";
 :set ($container->"file") (($container->"name") . ".tar");
-:set ($container->"remote-image") "linuxserver/mariadb:latest";
-:set ($container->"address") "10.11.12.7";
+:set ($container->"remote-image") "mbentley/omada-controller:latest";
+:set ($container->"address") "10.11.12.10";
 :set ($container->"cmd") "";
 :set ($container->"entrypoint") "";
 :set ($container->"domain-name") "docker.lan";
 :set ($container->"hostname") ($container->"name");
 :set ($container->"logging") yes;
 :set ($container->"stop-signal") "15";
-:set ($container->"comment") ($container->"name");
+:set ($container->"comment") "";
 :set ($container->"dns") "";
 :set ($container->"workdir") "";
 :set ($container->"re-mount") true;
-
+  
 #ENVIROMENT
 :local enviroment ({});
 :set ($enviroment->"TZ") "America/Caracas";
-:set ($enviroment->"MYSQL_ROOT_PASSWORD") "123456";
-:set ($enviroment->"MYSQL_DATABASE") "syslog";
-:set ($enviroment->"MYSQL_USER") "syslog";
-:set ($enviroment->"MYSQL_PASSWORD") "123456";
 
 #MOUNTS
 :local mounts ({});
-:set ($mounts->"config") "/config";
+:set ($mounts->"omada-data") "/opt/tplink/EAPController/data";
+:set ($mounts->"omada-work") "/opt/tplink/EAPController/work";
+:set ($mounts->"omada-logs") "/opt/tplink/EAPController/logs";
 
 #REGISTER
 :set ($container->"enviroment") $enviroment;

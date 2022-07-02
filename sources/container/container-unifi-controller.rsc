@@ -23,7 +23,7 @@
 :set ($container->"domain-name") "docker.lan";
 :set ($container->"hostname") ($container->"name");
 :set ($container->"logging") yes;
-:set ($container->"stop-signal") "";
+:set ($container->"stop-signal") "15";
 :set ($container->"comment") "";
 :set ($container->"dns") "";
 :set ($container->"workdir") "";
