@@ -66,9 +66,10 @@
 		}
 		
 		:local rootDir ("$diskName" . ($disk->"install-dir"));
-		:local imageFile ("$diskName" . ($disk->"image-dir") . "/" . ($container->"file"));
-		:local installDir "$rootDir/$dockerName/root";
-		:local mountDir "$rootDir/$dockerName/mount";
+		#:local imageFile ("$diskName" . ($disk->"image-dir") . "/" . ($container->"file"));
+		:local imageFile ("$rootDir/" . ($disk->"image-dir") . "/" . ($container->"file"));
+		:local installDir "$rootDir/containers/$dockerName";
+		:local mountDir "$rootDir/mounts/$dockerName";
 
 		:local etherName "veth-$dockerName";
 		:local etherGateway $dockerBridgeAddress;
