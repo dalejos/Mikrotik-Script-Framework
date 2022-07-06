@@ -36,19 +36,20 @@
 		:local idBridge [/interface/bridge/find where name=$dockerBridge];
 		:if ([:len $idBridge] = 0) do={
 			:put "Creando bridge: $dockerBridge ($dockerBridgeAddress/$cidr).";
-			/interface/bridge/add name=$dockerBridge;
-			/ip/address/add address="$dockerBridgeAddress/$cidr" interface=$dockerBridge;
+			/interface/bridge/add name=$dockerBridge comment=$dockerBridge;
+			/ip/address/add address="$dockerBridgeAddress/$cidr" interface=$dockerBridge comment=$dockerBridge;
 		} else={
 			:local interfaceAddress [/ip/address/get [find where interface=$dockerBridge] address];
 			:put "Bridge configurado previamente: $dockerBridge ($interfaceAddress).";
 		}
 		
+		#FIREWALL
 		:if (($bridge->"nat")) do={
 			:local dockerNetwork ([/ip/address/get [find where interface=$dockerBridge] network] . "/$cidr");
 
 			:if ([:len [/ip/firewall/nat/find where chain=srcnat action=masquerade src-address=$dockerNetwork]] = 0) do={
 				:put "Creando regla firewall srcnat masquerade: $dockerNetwork.";
-				/ip/firewall/nat/add chain=srcnat action=masquerade src-address=$dockerNetwork;
+				/ip/firewall/nat/add chain=srcnat action=masquerade src-address=$dockerNetwork comment=$dockerBridge;
 			} else={
 				:put "Regla firewall srcnat masquerade configurado previamente: $dockerNetwork.";
 			}
@@ -66,7 +67,6 @@
 		}
 		
 		:local rootDir ("$diskName" . ($disk->"install-dir"));
-		#:local imageFile ("$diskName" . ($disk->"image-dir") . "/" . ($container->"file"));
 		:local imageFile ("$rootDir/" . ($disk->"image-dir") . "/" . ($container->"file"));
 		:local installDir "$rootDir/containers/$dockerName";
 		:local mountDir "$rootDir/mounts/$dockerName";
