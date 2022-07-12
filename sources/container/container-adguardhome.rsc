@@ -34,6 +34,9 @@
 
 #MOUNTS
 :local mounts ({});
+:set ($mounts->"conf") "/opt/adguardhome/conf";
+:set ($mounts->"work") "/opt/adguardhome/work";
+
 
 #REGISTER
 :set ($container->"enviroment") $enviroment;
