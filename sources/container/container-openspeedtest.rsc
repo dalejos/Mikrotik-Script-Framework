@@ -34,7 +34,7 @@
 
 #MOUNTS
 :local mounts ({});
-
+:set ($mounts->"nginx") "/var/log/nginx";
 
 #REGISTER
 :set ($container->"enviroment") $enviroment;
