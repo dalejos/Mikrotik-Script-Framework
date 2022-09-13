@@ -135,13 +135,13 @@
 				/container/add file=$imageFile interface=$etherName root-dir=$installDir mounts=$mountsName envlist=$dockerName \
 				comment=($dockerName . " - " . $etherAddress) logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint \
 				hostname=($container->"hostname") domain-name=($container->"domain-name") dns=($container->"dns") workdir=($container->"workdir") \
-				stop-signal=($container->"stop-signal");
+				stop-signal=($container->"stop-signal") start-on-boot=($container->"start-on-boot");
 			} else={
 				:put "Archivo de imagen no encontrado, instalando desde imagen remota: $remoteImage.";
 				/container/add remote-image=$remoteImage interface=$etherName root-dir=$installDir mounts=$mountsName envlist=$dockerName \
 				comment=($dockerName . " - " . $etherAddress) logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint \
 				hostname=($container->"hostname") domain-name=($container->"domain-name") dns=($container->"dns") workdir=($container->"workdir") \
-				stop-signal=($container->"stop-signal");
+				stop-signal=($container->"stop-signal") start-on-boot=($container->"start-on-boot");
 			}
 			
 			:put "";
