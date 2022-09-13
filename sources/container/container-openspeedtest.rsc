@@ -27,6 +27,8 @@
 :set ($container->"comment") ($container->"name");
 :set ($container->"dns") "";
 :set ($container->"workdir") "";
+:set ($container->"start-on-boot") true;
+
 :set ($container->"re-mount") true;
 
 #ENVIROMENT
