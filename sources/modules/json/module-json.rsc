@@ -1,3 +1,12 @@
+:global modules;
+:if ([:typeof $modules] != "array") do={
+    :set $modules [:toarray ""];
+}
+
+:local moduleInfo {"version"=1};
+
+:set ($modules->"module-json") $moduleInfo;
+
 :global getAll do={
     :local path "$1";
     :local where "";
@@ -61,7 +70,6 @@
         }    
     }
 }
-
 
 :global json [:toarray ""];
 
