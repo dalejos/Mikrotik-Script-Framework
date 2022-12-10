@@ -52,18 +52,42 @@
 				/ip/firewall/nat/add chain=srcnat action=masquerade src-address=$dockerNetwork comment=$dockerBridge;
 			} else={
 				:put "Regla firewall srcnat masquerade configurado previamente: $dockerNetwork.";
-			}
+			}			
 		}
+		
+		:put "\nRemoviendo reenvios de puertos configurados previamente para: container-$dockerName";
+		/ip/firewall/nat/remove [find where comment~"container-$dockerName"];
+		
+		:if (($container->"nat")) do={
+		
+			:local ports ($container->"ports");
+			
+			:foreach proto,port in=$ports do={
+				:local dsTports "";
+				:foreach dsTport,toPort in=$port do={
+					:put "Agregando redireccion de puerto $proto: $dsTport -> $toPort";
+					:if ([:len $dsTports] > 0) do={
+						:set dsTports "$dsTports,$dsTport";
+					} else={
+						:set dsTports "$dsTport";
+					}
+					/ip/firewall/nat/add chain="container-$dockerName-$proto" protocol=$proto dst-port=$dsTport action=dst-nat to-addresses=($container->"address") to-ports=$toPort \
+					comment="container-$dockerName-$proto $dsTport -> $toPort";
+				}
+				/ip/firewall/nat/add chain=dstnat action=jump jump-target="container-$dockerName-$proto" protocol=$proto dst-port=$dsTports place-before=0 \
+				comment="jump to container-$dockerName-$proto";
+			}
+		}		
 
 		#CONTAINER
 
 		:local diskName "";
 		:local diskId [/disk/find where label=($disk->"label")];
 		:if ([:len $diskId] = 0) do={
-			:local diskId [/disk/find where name=($disk->"name")];
+			:local diskId [/disk/find where slot=($disk->"name")];
 		}
 		:if ([:len $diskId] > 0) do={
-			:set diskName ([/disk/get $diskId name] . "/");
+			:set diskName ([/disk/get $diskId slot] . "/");
 		}
 		
 		:local rootDir ("$diskName" . ($disk->"install-dir"));
