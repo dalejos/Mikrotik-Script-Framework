@@ -29,18 +29,36 @@
 :set ($container->"workdir") "";
 :set ($container->"start-on-boot") false;
 
+:set ($container->"nat") true;
 :set ($container->"re-mount") true;
 
 #ENVIROMENT
 :local enviroment ({});
+:set ($enviroment->"TZ") "America/Caracas";
+:set ($enviroment->"MEM_LIMIT") "1024";
+:set ($enviroment->"MEM_STARTUP") "1024";
 
 #MOUNTS
 :local mounts ({});
 :set ($mounts->"config") "/config";
 
+#PORTS
+:local ports ({});
+:set ($ports->"tcp"->"8443") "8443";
+:set ($ports->"tcp"->"8080") "8080";
+:set ($ports->"tcp"->"8843") "8843";
+:set ($ports->"tcp"->"8880") "8880";
+:set ($ports->"tcp"->"6789") "6789";
+
+:set ($ports->"udp"->"3478") "3478";
+:set ($ports->"udp"->"10001") "10001";
+:set ($ports->"udp"->"1900") "1900";
+:set ($ports->"udp"->"5514") "5514";
+
 #REGISTER
 :set ($container->"enviroment") $enviroment;
 :set ($container->"mounts") $mounts;
+:set ($container->"ports") $ports;
 
 :global registerContainer;
 [$registerContainer bridge=$bridge disk=$disk container=$container];
