@@ -74,7 +74,8 @@
 					/ip/firewall/nat/add chain="container-$dockerName-$proto" protocol=$proto dst-port=$dsTport action=dst-nat to-addresses=($container->"address") to-ports=$toPort \
 					comment="container-$dockerName-$proto $dsTport -> $toPort";
 				}
-				/ip/firewall/nat/add chain=dstnat action=jump jump-target="container-$dockerName-$proto" protocol=$proto dst-port=$dsTports place-before=0 \
+				:local fId (([/ip/firewall/nat/find where chain="container-$dockerName-$proto"])->0);
+				/ip/firewall/nat/add chain=dstnat action=jump jump-target="container-$dockerName-$proto" protocol=$proto dst-port=$dsTports place-before=$fId \
 				comment="jump to container-$dockerName-$proto";
 			}
 		}		
