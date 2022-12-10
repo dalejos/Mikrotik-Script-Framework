@@ -31,6 +31,7 @@
 :set ($container->"workdir") "";
 :set ($container->"start-on-boot") false;
 
+:set ($container->"nat") true;
 :set ($container->"re-mount") true;
 
 #ENVIROMENT
@@ -42,9 +43,13 @@
 :set ($mounts->"config") "/config";
 :set ($mounts->"log") "/var/log";
 
+#PORTS
+:local ports ({});
+
 #REGISTER
 :set ($container->"enviroment") $enviroment;
 :set ($container->"mounts") $mounts;
+:set ($container->"ports") $ports;
 
 :global registerContainer;
 [$registerContainer bridge=$bridge disk=$disk container=$container];
