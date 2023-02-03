@@ -182,3 +182,38 @@
 		:put "Por favor verifique los parametros.";
 	}
 }
+
+:global unregisterContainer;
+:set unregisterContainer do={
+	:local dockerName $1;
+	:local etherName "veth-$dockerName";
+
+	:put "\nIniciando desinstalacion del docker: $dockerName.";
+
+	:put "\nRemoviendo reenvios de puertos configurados previamente para: container-$dockerName";
+
+	/ip/firewall/nat/remove [find where comment~"container-$dockerName"];
+	
+	:put "\nRemoviendo interface virtual del bridge: $etherName";
+	
+	/interface/bridge/port/remove [find where interface=$etherName];
+
+	:put "\nRemoviendo interface virtual: $etherName";
+	
+	/interface/veth/remove [find where name=$etherName];
+	
+	:put "\nEliminando contenerdor: $dockerName.";
+	
+	/container/remove [find where comment~"^$dockerName"];
+	
+	:put "\nRemoviendo enviroment: $dockerName";
+
+	/container/envs/remove [find where name=$dockerName];
+	
+	:put "\nRemoviendo mounts: $dockerName";
+	
+	/container/mounts/remove [find where name~"^$dockerName"];
+	
+	:put "\nDesinstalacion del docker $dockerName finalizada.";
+	:put "\n";
+}
