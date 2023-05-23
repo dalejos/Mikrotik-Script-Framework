@@ -19,8 +19,6 @@
 }
 
 #ON TEST DNS
-#:local host 10.11.12.2;
-#:local status "up";
 :local domainName $host;
 
 :if ($status = "up") do={
@@ -50,4 +48,8 @@
 
 #ON DOWN
 /ip/firewall/nat/set [find where comment="REDIRECT DNS"] disabled=no;
+
+/ip firewall nat
+add action=redirect chain=dstnat comment="REDIRECT DNS" dst-port=53 protocol=udp
+add action=redirect chain=dstnat comment="REDIRECT DNS" dst-port=53 protocol=tcp
 
