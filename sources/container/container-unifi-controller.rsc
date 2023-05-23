@@ -35,8 +35,8 @@
 #ENVIROMENT
 :local enviroment ({});
 :set ($enviroment->"TZ") "America/Caracas";
-:set ($enviroment->"MEM_LIMIT") "1024";
-:set ($enviroment->"MEM_STARTUP") "1024";
+:set ($enviroment->"MEM_LIMIT") "512";
+:set ($enviroment->"MEM_STARTUP") "256";
 
 #MOUNTS
 :local mounts ({});
