@@ -379,7 +379,8 @@
 	:put ("Nro. de conexiones: " . [:len $firewallConnections]);
 	:put "";
 	:put ([$format "#" 5] . [$format "SRC. ADDRESS" 22] . [$format "DST. ADDRESS" 22] . [$format "PROTO" 7] . [$format "SERVICE" 14] \
-	. [$format "COUNTRY" 9] . [$format "COUNTRY NAME" 25] . [$format "AS" 10] . [$format "AS NAME" 30]);
+	. [$format "COUNTRY" 9] . [$format "COUNTRY NAME" 20] . [$format "AS" 10] . [$format "AS NAME" 25] \
+	. [$format "ORIG./REPL." 20]);
 	/terminal style none;
 
 	:foreach id in=$firewallConnections do={
@@ -482,8 +483,11 @@
 				}
 
 				:set idx ($idx + 1);
+				:local origBytes ($connection->"orig-bytes" / 1024 / 1024);
+				:local replBytes ($connection->"repl-bytes" / 1024 / 1024);				
 				:put ([$format $idx 5] . [$format $srcAddress 22] . [$format $dstAddress 22] . [$format $protocol 7] . [$format $protocolPort 14] \
-				. [$format ($data->"countryCode") 9] . [$format ($data->"country") 25] . [$format ($data->"as") 10] . [$format ($data->"asname") 30]);
+				. [$format ($data->"countryCode") 9] . [$format ($data->"country") 20] . [$format ($data->"as") 10] . [$format ($data->"asname") 25] \
+				. [$format ("$origBytes MB / $replBytes MB") 20]);
 				:if ([:len $dnsCache] > 0) do={
 					:foreach dnsData in=$dnsCache do={
 						:put ([$format ("     type: " . ($dnsData->"type")) 27] . [$format ("name: " . ($dnsData->"name")) 50]);
