@@ -154,9 +154,15 @@ bancaenlinea.mibanco.com.ve
 bancaenlineaj.mibanco.com.ve
 bancaenlineac2p.mibanco.com.ve
 mibanco.librepago.com
+
+#banco de venezuela
+
 bdvenlinea.banvenez.com
 bdvenlineaempresas.banvenez.com
 misdatosbdv.banvenez.com
+
+#
+
 puntoya.com.ve
 puntoyapos.com.ve
 tramitesenlineabdv.banvenez.com
