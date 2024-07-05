@@ -4,6 +4,14 @@
     :return "";
 }
 
+:local isReserved;
+:set isReserved do={
+	:local dstIp $1;
+	:return (($dstIp in 10.0.0.0/8) or ($dstIp in 172.16.0.0/12) or ($dstIp in 192.168.0.0/16) or \
+		($dstIp in 169.254.0.0/16) or ($dstIp in 100.64.0.0/10) or ($dstIp in 0.0.0.0/8) or \
+		($dstIp in 127.0.0.0/8) or ($dstIp in 224.0.0.0/4) or ($dstIp in 240.0.0.0/4) or \
+		($dstIp in 255.255.255.255/32));
+}
 
 :local dataRipe;
 :set dataRipe do={
@@ -143,11 +151,15 @@
 
 
 				:if ([$isIPv4 $line]) do={
-					:if (!([:find ($dataList->"ipv4") $line] >= 0)) do={
-						:put "Cargando IPv4: $line";
-						:set ($dataList->"ipv4") (($dataList->"ipv4"), $line);
+					:if (![$isReserved $line]) do={	
+						:if (!([:find ($dataList->"ipv4") $line] >= 0)) do={
+							:put "Cargando IPv4: $line";
+							:set ($dataList->"ipv4") (($dataList->"ipv4"), $line);
+						} else={
+							[$putWarning ("Ignorando IPv4 duplicada: " . $line)];
+						}
 					} else={
-						[$putWarning ("Ignorando IPv4 duplicada: " . $line)];
+						[$putError ("Ignorando IPv4 privado: " . $line)];
 					}
 				} else={
 					:if ([$isAS $line]) do={
@@ -159,11 +171,15 @@
 						}
 					} else={
 						:if ([$isSegmentIPv4 $line]) do={
-							:if (!([:find ($dataList->"segment") $line] >= 0)) do={
-								:put "Cargando segmento: $line";
-								:set ($dataList->"segment") (($dataList->"segment"), $line);
+							:if (![$isReserved $line]) do={	
+								:if (!([:find ($dataList->"segment") $line] >= 0)) do={
+									:put "Cargando segmento: $line";
+									:set ($dataList->"segment") (($dataList->"segment"), $line);
+								} else={
+									[$putWarning ("Ignorando segmento duplicado: " . $line)];
+								}
 							} else={
-								[$putWarning ("Ignorando segmento duplicado: " . $line)];
+								[$putWarning ("Ignorando segmento privado: " . $line)];
 							}
 						} else={
 							:if ([$isDomain $line]) do={
