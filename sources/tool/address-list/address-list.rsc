@@ -1,3 +1,10 @@
+
+:local fetchFile;
+:set fetchFile do={
+    :return "";
+}
+
+
 :local dataRipe;
 :set dataRipe do={
     :local callBack $1;
@@ -19,33 +26,59 @@
 	:return [:deserialize $1 from=json];
 }
 
-:local getFileStream;
-:set getFileStream do={
-	:local fileStream [/file/print as-value where name=$1];
-	:if ([:len $fileStream] > 0) do={
-		:set fileStream ($fileStream->0);
-		:set ($fileStream->"exists") true;
-		:set ($fileStream->"buffer") "";
-		:set ($fileStream->"bufferSize") 0;
-		:set ($fileStream->"cs") 32768;
-		:set ($fileStream->"os") 0;
-		:set ($fileStream->"canRead") (($fileStream->"size") > ($fileStream->"os"));
-	} else={
-		:set $fileStream ({"exists"=false});
+:local loadFile;
+:set loadFile do={
+
+	:local result;
+	:local errorName "";
+	
+	:onerror error=errorName in={
+		:local fileId [/file/find where name=$1];
+		:if (!([:len $fileId] > 0)) do={
+			:error "Archivo $1 no encontrado.";
+		}		
+		:set result [/file/get $fileId];
+		:local cs 32768;
+		:local os 0;
+		:local data "";
+		:while ($os < ($result->"size")) do={
+			:set data ($data . ([/file/read file=($result->"name") offset=$os chunk-size=$cs as-value]->"data"));
+			:set os ($os + $cs);
+		}
+		:set ($result->"error") false;
+		:set ($result->"message") "";
+		:set ($result->"data") $data;
+	} do={
+		:set ($result->"error") true;
+		:set ($result->"message") $errorName;
 	}
-	:return $fileStream;
+	:return $result;
 }
 
-:local readFile;
-:set readFile do={
-	:local fileStream $1;
-	:if (($fileStream->"os") < ($fileStream->"size")) do={
-		:set ($fileStream->"buffer") ([/file/read file=($fileStream->"name") offset=($fileStream->"os") chunk-size=($fileStream->"cs") as-value]->"data");
-		:set ($fileStream->"bufferSize") [:len ($fileStream->"buffer")];
-		:set ($fileStream->"os") (($fileStream->"os") + ($fileStream->"cs"));
-	}
-	:set ($fileStream->"canRead") (($fileStream->"size") > ($fileStream->"os"));
-	:return $fileStream;
+:local putInfo;
+:set putInfo do={
+	:put $1;
+}
+
+:local putWarning;
+:set putWarning do={
+	/terminal/style varname;
+	:put $1;
+	/terminal/style none;
+}
+
+:local putError;
+:set putError do={
+	/terminal/style error;
+	:put $1;
+	/terminal/style none;
+}
+
+:local putComment;
+:set putComment do={
+	/terminal/style comment;
+	:put $1;
+	/terminal/style none;
 }
 
 :local isIPv4;
@@ -88,71 +121,79 @@
 :set ($dataList->"domain") ({});
 
 :local addressPath "";
-:local fileName "lista.txt";
+:local listName "lista.txt";
 
-:local fileStream [$getFileStream $fileName];
+:local listFile [$loadFile $listName];
 
-:put $fileStream;
-
-:if ($fileStream->"exists") do={
+:if (!($listFile->"error")) do={
+	:local index 0;
 	:local line "";
 	:local charAt "";
-	:while ($fileStream->"canRead") do={
-		:set fileStream [$readFile $fileStream];
-		
-		:local index 0;
-		:while ($index <= ($fileStream->"bufferSize")) do={
-			:set charAt [:pick ($fileStream->"buffer") $index ($index + 1)];
+	:local skipComment false;
+	:local lineComment "";
+	:while ($index <= ($listFile->"size")) do={
+		:set charAt [:pick ($listFile->"data") $index ($index + 1)];
+		:if (($charAt = "\n") || ($charAt = "\r")) do={
+			:set skipComment false;
+			:if ([:len $lineComment] > 0) do={
+				[$putComment ("COMMENT: " . $lineComment)];
+				:set lineComment "";
+			}
+			:if ([:len $line] > 0) do={
 
-			:if (($charAt = "\n") || ($charAt = "\r")) do={
-				:if ([:len $line] > 0) do={
 
-
-					:if ([$isIPv4 $line]) do={
-						:if (!([:find ($dataList->"ipv4") $line] >= 0)) do={
-							:put "Cargando IPv4: $line";
-							:set ($dataList->"ipv4") (($dataList->"ipv4"), $line);
+				:if ([$isIPv4 $line]) do={
+					:if (!([:find ($dataList->"ipv4") $line] >= 0)) do={
+						:put "Cargando IPv4: $line";
+						:set ($dataList->"ipv4") (($dataList->"ipv4"), $line);
+					} else={
+						[$putWarning ("Ignorando IPv4 duplicada: " . $line)];
+					}
+				} else={
+					:if ([$isAS $line]) do={
+						:if (!([:find ($dataList->"as") $line] >= 0)) do={
+							:put "Cargando AS: $line";
+							:set ($dataList->"as") (($dataList->"as"), $line);
 						} else={
-							:put "Ignorando IPv4 duplicada: $line";
+							[$putWarning ("Ignorando AS duplicado: " . $line)];
 						}
 					} else={
-						:if ([$isAS $line]) do={
-							:if (!([:find ($dataList->"as") $line] >= 0)) do={
-								:put "Cargando AS: $line";
-								:set ($dataList->"as") (($dataList->"as"), $line);
+						:if ([$isSegmentIPv4 $line]) do={
+							:if (!([:find ($dataList->"segment") $line] >= 0)) do={
+								:put "Cargando segmento: $line";
+								:set ($dataList->"segment") (($dataList->"segment"), $line);
 							} else={
-								:put "Ignorando AS duplicado: $line";
+								[$putWarning ("Ignorando segmento duplicado: " . $line)];
 							}
 						} else={
-							:if ([$isSegmentIPv4 $line]) do={
-								:if (!([:find ($dataList->"segment") $line] >= 0)) do={
-									:put "Cargando segmento: $line";
-									:set ($dataList->"segment") (($dataList->"segment"), $line);
+							:if ([$isDomain $line]) do={
+								:if (!([:find ($dataList->"domain") $line] >= 0)) do={
+									:put "Cargando dominio: $line";
+									:set ($dataList->"domain") (($dataList->"domain"), $line);
 								} else={
-									:put "Ignorando segmento duplicado: $line";
+									[$putWarning ("Ignorando dominio duplicado: " . $line)];
 								}
 							} else={
-								:if ([$isDomain $line]) do={
-									:if (!([:find ($dataList->"domain") $line] >= 0)) do={
-										:put "Cargando dominio: $line";
-										:set ($dataList->"domain") (($dataList->"domain"), $line);
-									} else={
-										:put "Ignorando dominio duplicado: $line";
-									}
-								} else={
-									
-								}							
-							}
+								
+							}							
 						}
 					}
-					:set $line "";
+				}
+
+
+				:set $line "";
+			}
+		} else={
+			:if (!($charAt = "#") && !$skipComment) do={
+				:if (!($charAt = " ")) do={				
+					:set line ($line . $charAt);
 				}
 			} else={
-				:set line ($line . $charAt);
+				:set skipComment true;
+				:set lineComment ($lineComment . $charAt);
 			}
-			
-			:set index ($index + 1);
 		}
+		:set index ($index + 1);
 	}
 	
 # Cargando informacion de los AS desde ripe.net
@@ -170,7 +211,7 @@
 				:put "Cargando segmento: $segment";
 				:set ($dataList->"segment") (($dataList->"segment"), $segment);
 			} else={
-				:put "Ignorando segmento duplicado: $segment";
+				[$putWarning ("Ignorando segmento duplicado: " . $segment)];
 			}
 		}
 	}	
@@ -186,7 +227,7 @@
 		:foreach jSegment in=($dataList->"segment") do={
 			:if (!($iSegment = $jSegment)) do={
 				:if ($iSegment in $jSegment) do={
-					:put "Ignorando segmento, $iSegment en segmento $jSegment";
+					[$putWarning ("Ignorando segmento, " . $iSegment . " en segmento " . $jSegment)];
 					:set ignoreSegment true;
 				}
 			}
@@ -208,7 +249,7 @@
 		:set ignoreIPv4 false;
 		:foreach segment in=($dataList->"segment") do={
 			:if ($ipv4 in $segment) do={
-				:put "Ignorando IP, $ipv4 en segmento $segment";
+				[$putWarning ("Ignorando IP, " . $ipv4 . " en segmento " . $segment)];
 				:set ignoreIPv4 true;
 			} else={
 			}			
@@ -233,7 +274,7 @@
 			:put "Agregando $item a la lista $listName";
 			/ip/firewall/address-list/add address=$item list=$listName comment="script ipv4 - $listName";
 		} else={
-			:put "Direccion $item ya existe en la lista $listName";
+			[$putWarning ("Direccion " . $item . " ya existe en la lista " . $listName)];
 		}
 	}
 
@@ -243,7 +284,7 @@
 			:put "Agregando $item a la lista $listName";
 			/ip/firewall/address-list/add address=$item list=$listName comment="script segment - $listName";
 		} else={
-			:put "Direccion $item ya existe en la lista $listName";
+			[$putWarning ("Direccion " . $item . " ya existe en la lista " . $listName)];
 		}
 	}
 
@@ -253,10 +294,11 @@
 			:put "Agregando $item a la lista $listName";
 			/ip/firewall/address-list/add address=$item list=$listName comment="script domain - $listName";
 		} else={
-			:put "Direccion $item ya existe en la lista $listName";
+			[$putWarning ("Direccion " . $item . " ya existe en la lista " . $listName)];
 		}
 	}
+
 	
 } else={
-	:put ("Archivo no existe.");
+	[$putError ("Error: " . ($listFile->"message"))];
 }
