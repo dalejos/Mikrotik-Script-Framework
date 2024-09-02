@@ -100,6 +100,11 @@
 	}
 
 	:local tracertResult [/tool/traceroute $ipAddress count=$tracertCount max-hops=$maxHops as-value];
+	
+	#Se agrega para corregir devolucion de datos de traceroute
+	:if ([:len ($tracertResult->"address")] > 0) do={
+		:set $tracertResult ({$tracertResult});
+	}
 
 	/terminal style syntax-noterm;
 	:put "";
