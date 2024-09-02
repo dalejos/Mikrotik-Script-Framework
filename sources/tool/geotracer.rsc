@@ -77,6 +77,7 @@
 	:local hostName;
 	:local ipAddress;
 	:local tracertCount 1;
+	:local maxHops 30;
 	
 	:if ([:typeof [:toip $1]] = "ip") do={
 		:set ipAddress $1;
@@ -94,7 +95,11 @@
 		:set tracertCount [:tonum $2];
 	}
 
-	:local tracertResult [/tool/traceroute $ipAddress count=$tracertCount as-value];
+	:if ([:tonum $3] > 0) do={
+		:set maxHops [:tonum $3];
+	}
+
+	:local tracertResult [/tool/traceroute $ipAddress count=$tracertCount max-hops=$maxHops as-value];
 
 	/terminal style syntax-noterm;
 	:put "";
