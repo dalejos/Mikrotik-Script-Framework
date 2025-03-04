@@ -1,6 +1,6 @@
 #Version: 7.0
 #Fecha: 26-06-2022
-#RouterOS 7.4beta5 y superior.
+#RouterOS 7.16 y superior.
 #Comentario: Modulo para registro de containers.
 
 :global registerContainer;
@@ -83,7 +83,7 @@
 		#CONTAINER
 
 		:local diskName "";
-		:local diskId [/disk/find where label=($disk->"label")];
+		:local diskId [/disk/find where fs-label=($disk->"label")];
 		:if ([:len $diskId] = 0) do={
 			:local diskId [/disk/find where slot=($disk->"name")];
 		}
