@@ -1,15 +1,53 @@
 {
+
+
 	:local choice do={
-		:return 0;
+		:local option 0;
+		:local calcelOption 0;
+		
+		:local paramChoices [:toarray $choices];
+		:local paramTitle [:tostr $title];
+		:local paramPrompt [:tostr $prompt];
+
+		:local minChoice 0;
+		:local maxChoice [:len $paramChoices];
+		
+		:if ([:len $paramTitle] = 0) do= {:set paramTitle "Lista de opciones:"}
+		:if ([:len $paramPrompt] = 0) do= {
+			:set minChoice 1;
+			:set paramPrompt "Selecciona una opcion y presiona enter: "
+		}
+
+		
+		:do {
+			:set option 0;
+			:put "";
+			:put $paramTitle;
+			:put "";
+			:foreach choiceOption in $paramChoices do={
+				:set option ($option + 1);
+				:put "$option - $choiceOption";
+			}
+			:set option ($option + 1);
+			:set calcelOption $option;
+			:put "$option - Cancelar";
+			:put "";
+			:set option [:tonum [/terminal/ask prompt=$paramPrompt]];
+			:if ($option = $calcelOption) do={
+				:return -1;
+			}
+		} while (!(($option >=$minChoice) && ($option <= $maxChoice)));
+		
+		:return $option;
 	}
-	:put [$choice];
+	:put [$choice choices="uno,dos,tres" prompt="Selecciona el bridge para el contenedor, 0 para crear uno nuevo: " title="Selecciona una opcion: "];
 }
 
 {
 	
 	:local bridgeIds [/interface/bridge/find];
 
-	:local option 0;
+	:local option 0; 
 	:local bridgeCount [:len $bridgeIds];
 	:do {
 		:local returnOption 0;
