@@ -1,4 +1,11 @@
 {
+	:local choice do={
+		:return 0;
+	}
+	:put [$choice];
+}
+
+{
 	
 	:local bridgeIds [/interface/bridge/find];
 
