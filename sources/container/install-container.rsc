@@ -1,18 +1,32 @@
 {
-	:put "";
 	
 	:local bridgeIds [/interface/bridge/find];
 
 	:local option 0;
-	:if ([:len $bridgeIds] > 0) do={
-		:foreach id in $bridgeIds do={
-			:local bridgeName [/interface/bridge/get $id name];
-			:set option ($option + 1);
-			:put "$option - $bridgeName";
-		}
+	:local bridgeCount [:len $bridgeIds];
+	:do {
+		:local returnOption 0;
+		
+		:set option 0;
 		:put "";
-		:set option [/terminal/ask prompt="Selecciona el bridge para el contenedor, 0 para crear uno nuevo: " preinput="0"];
-	}
+		:put "Seleccionar o crear bridge.";
+		:put "";
+		:if ($bridgeCount > 0) do={
+			:foreach id in $bridgeIds do={
+				:local bridgeName [/interface/bridge/get $id name];
+				:set option ($option + 1);
+				:put "$option - $bridgeName";
+			}
+		}
+		:set option ($option + 1);
+		:set returnOption $option;
+		:put "$option - Cancelar";
+		:put "";
+		:set option [:tonum [/terminal/ask prompt="Selecciona el bridge para el contenedor, 0 para crear uno nuevo: "]];
+		:if ($option = $returnOption) do={
+			:return "";
+		}
+	} while (!(($option >=0) && ($option <= $bridgeCount)));
 	:put "Opcion: $option";
 }
 
