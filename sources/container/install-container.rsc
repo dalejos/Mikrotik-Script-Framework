@@ -1,86 +1,88 @@
 {
 
-
+	:local segmentIPv4;
+	:set segmentIPv4 do={
+		:local ipAddress [:tostr $1];
+		:local segment ({});
+	
+		:local slash [:find $1 "/"];
+		:if ($slash >= 0) do={
+			:local ipAddress [:pick $1 0 $slash];
+			:local cidr [:tonum [:pick $1 ($slash + 1) [:len $1]]];
+			:if (($cidr >= 0) && ($cidr <= 32)) do={
+				:if ([:typeof [:toip $ipAddress]] = "ip") do={
+					:set segment {"address"=$ipAddress; "cidr"=$cidr};
+				}
+			}
+		}
+		:return $segment;
+	}
+	
 	:local choice do={
-		:local option 0;
+		:local option -1;
 		:local calcelOption 0;
 		
 		:local paramChoices [:toarray $choices];
 		:local paramTitle [:tostr $title];
 		:local paramPrompt [:tostr $prompt];
+		:local paramCancellable true;
 
 		:local minChoice 0;
 		:local maxChoice [:len $paramChoices];
-		
-		:if ([:len $paramTitle] = 0) do= {:set paramTitle "Lista de opciones:"}
-		:if ([:len $paramPrompt] = 0) do= {
-			:set minChoice 1;
-			:set paramPrompt "Selecciona una opcion y presiona enter: "
-		}
-
-		
-		:do {
+				
+		:while (!(($option >=$minChoice) && ($option <= $maxChoice))) do={
 			:set option 0;
 			:put "";
-			:put $paramTitle;
-			:put "";
-			:foreach choiceOption in $paramChoices do={
-				:set option ($option + 1);
-				:put "$option - $choiceOption";
+			:if ([:len $paramTitle] > 0) do={
+				:put $paramTitle;
+				:put "";
 			}
-			:set option ($option + 1);
-			:set calcelOption $option;
-			:put "$option - Cancelar";
+			:foreach choiceOption in=$paramChoices do={
+				:put "$option - $choiceOption";
+				:set option ($option + 1);
+			}
+			:if ($paramCancellable) do={
+				:set calcelOption $option;
+				:put "$option - Cancelar";
+				:set option ($option + 1);
+			}
 			:put "";
 			:set option [:tonum [/terminal/ask prompt=$paramPrompt]];
 			:if ($option = $calcelOption) do={
 				:return -1;
 			}
-		} while (!(($option >=$minChoice) && ($option <= $maxChoice)));
+		}
 		
 		:return $option;
 	}
-	:put [$choice choices="uno,dos,tres" prompt="Selecciona el bridge para el contenedor, 0 para crear uno nuevo: " title="Selecciona una opcion: "];
-}
-
-{
 	
-	:local bridgeIds [/interface/bridge/find];
-
-	:local option 0; 
-	:local bridgeCount [:len $bridgeIds];
-	:do {
-		:local returnOption 0;
-		
-		:set option 0;
-		:put "";
-		:put "Seleccionar o crear bridge.";
-		:put "";
-		:if ($bridgeCount > 0) do={
-			:foreach id in $bridgeIds do={
-				:local bridgeName [/interface/bridge/get $id name];
-				:set option ($option + 1);
-				:put "$option - $bridgeName";
-			}
-		}
-		:set option ($option + 1);
-		:set returnOption $option;
-		:put "$option - Cancelar";
-		:put "";
-		:set option [:tonum [/terminal/ask prompt="Selecciona el bridge para el contenedor, 0 para crear uno nuevo: "]];
-		:if ($option = $returnOption) do={
-			:return "";
-		}
-	} while (!(($option >=0) && ($option <= $bridgeCount)));
-	:put "Opcion: $option";
+	:local bridge ({"nat"=true});
+	:local option;
+	
+	:local findIds [/interface/bridge/find];
+	
+	:local choiceOption ({}); #{"Crear un bridge"};
+	:foreach id in=$findIds do={
+		:local valueId [/interface/bridge/get $id name];
+		:set choiceOption ($choiceOption, $valueId);
+	}
+	
+	#BRIDGE
+	:set option [$choice choices=$choiceOption prompt="Selecciona el bridge para el contenedor o crea uno nuevo: " title="Selecciona una opcion: "];
+	:set ($bridge->"name") ($choiceOption->$option);
+	
+	:local findIds [/ip/address/find where !dynamic interface=($bridge->"name")];
+	:set choiceOption ({});
+	:foreach id in=$findIds do={
+		:local valueId [/ip/address/get $id address];
+		:set choiceOption ($choiceOption, $valueId);
+	}
+	:set option [$choice choices=$choiceOption prompt="Selecciona el address del bridge: " title="Selecciona una opcion: "];
+	:set bridge ($bridge, [$segmentIPv4 ($choiceOption->$option)]);
+	
+	:put $bridge;
+	
 }
-
-#BRIDGE
-:local bridge ({});
-:set ($bridge->"name") "docker";
-:set ($bridge->"address") "10.11.12.1";
-:set ($bridge->"cidr") "24";
-:set ($bridge->"nat") true;
 
 #DISK
 :local disk ({});
