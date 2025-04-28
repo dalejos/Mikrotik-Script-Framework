@@ -152,7 +152,9 @@
 		"3935"="sdp-portmapper";\
 		"4350"="net-device";\
 		"4500"="ipsec-msft";\
-		"5228"="android-market";\		
+		"5222"="messaging-client";\
+		"5223"="messaging-client";\
+		"5228"="android-market";\
 		"5355"="llmnr";\
 		"5357"="wsd";\
 		"5358"="wsd";\
@@ -285,6 +287,8 @@
 		"3935"="sdp-portmapper";\
 		"4350"="net-device";\
 		"4500"="ipsec-msft";\
+		"5222"="messaging-client";\
+		"5223"="messaging-client";\
 		"5355"="llmnr";\
 		"5678"="rrac";\
 		"5679"="dccm";\
@@ -362,7 +366,10 @@
 	}
 
 	:local dstAddressQueryList ([]);
-	:local dstAddressQueryResult ([]);
+	:global dstAddressQueryResult;
+	:if ([:len $dstAddressQueryResult] = 0) do={
+		:set dstAddressQueryResult ([]);
+	}
 	:local idx 0;
 	:local request 0;
 	:local timeStamp [$getCurrentTimestamp];
