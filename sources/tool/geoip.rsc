@@ -380,8 +380,8 @@
 			:set src "*";
 		}
 	}
-	:local firewallConnections [/ip firewall connection find where src-address~"$src"];
-
+	#:local firewallConnections [/ip/firewall/connection/print where src-address~"$src"];
+	:local firewallConnections [/ip/firewall/connection/print proplist="src-address,dst-address,protocol,orig-bytes,repl-bytes" as-value where src-address~"$src"];
 	/terminal style syntax-noterm;
 	:put ("Nro. de conexiones: " . [:len $firewallConnections]);
 	:put "";
@@ -390,8 +390,8 @@
 	. [$format "ORIG./REPL." 20]);
 	/terminal style none;
 
-	:foreach id in=$firewallConnections do={
-		:local connection [/ip firewall connection get $id];
+	:foreach connection in=$firewallConnections do={
+		#:local connection [/ip firewall connection get $id];
 		:if ([:len $connection] > 0) do={
 			:local dstAddress ($connection->"dst-address");
 			:local srcAddress ($connection->"src-address");
