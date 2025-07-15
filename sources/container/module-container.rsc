@@ -1,6 +1,6 @@
 #Version: 7.0
 #Fecha: 26-06-2022
-#RouterOS 7.16 y superior.
+#RouterOS 7.20 y superior.
 #Comentario: Modulo para registro de containers.
 
 :global registerContainer;
@@ -127,11 +127,11 @@
 			:put "Creando enviroment: $containerName";
 
 			#ENVIROMENT
-			/container/envs/remove [find where name=$containerName];
+			/container/envs/remove [find where list=$containerName];
 			
 			:foreach k,v in=$enviroment do={
 				:put "Nombre / valor: $k / $v";
-				/container/envs/add name=$containerName key=$k value=$v;
+				/container/envs/add list=$containerName key=$k value=$v;
 			}
 
 			#MOUNTS
@@ -160,13 +160,13 @@
 				/container/add file=$imageFile interface=$etherName root-dir=$installDir mounts=$mountsName envlist=$containerName \
 				comment=($containerName . " - " . $etherAddress) logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint \
 				hostname=($container->"hostname") domain-name=($container->"domain-name") dns=($container->"dns") workdir=($container->"workdir") \
-				stop-signal=($container->"stop-signal") start-on-boot=($container->"start-on-boot");
+				stop-signal=($container->"stop-signal") start-on-boot=($container->"start-on-boot") check-certificate=no;
 			} else={
 				:put "Archivo de imagen no encontrado, instalando desde imagen remota: $remoteImage.";
 				/container/add remote-image=$remoteImage interface=$etherName root-dir=$installDir mounts=$mountsName envlist=$containerName \
 				comment=($containerName . " - " . $etherAddress) logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint \
 				hostname=($container->"hostname") domain-name=($container->"domain-name") dns=($container->"dns") workdir=($container->"workdir") \
-				stop-signal=($container->"stop-signal") start-on-boot=($container->"start-on-boot");
+				stop-signal=($container->"stop-signal") start-on-boot=($container->"start-on-boot") check-certificate=no;
 			}
 			
 			:put "";
@@ -188,19 +188,19 @@
 	:local containerName $1;
 	:local try 60;
 	:local containerId [/container/find where name=$containerName];
-	:local containerStatus "";
+	:local isStop false;
 	:if ([:len $containerId] > 0) do={
 		/container/stop $containerId;
-		:set containerStatus [/container/get $containerId status];
-		:while ((($containerStatus != "stopped") && ($containerStatus != "error")) && $try > 0) do={
+		:set isStop [/container/get $containerId stopped];
+		:while (!($isStop) && ($try > 0)) do={
 			:put "Esperando por la parada del contenedor ($try)  ";
 			/terminal/cuu count=2;
 			:delay delay-time=1s;
 			:set try ($try - 1);
-			:set containerStatus [/container/get $containerId status];
+			:set isStop [/container/get $containerId stopped];
 		}
 	}
-	:return (($containerStatus = "stopped") || ($containerStatus = "error"));
+	:return $isStop;
 }
 
 
@@ -209,40 +209,41 @@
 	:global stopAndWaitContainer;
 	
 	:local containerName $1;
-	:local container [/container/print as-value where name=$containerName];
+	:local containerId [/container/find where name=$containerName];
 	
-	:if ([:len $container] = 1) do={
-		
-		:local etherName ($container->0->"interface");
+	:if ([:len $containerId] > 0) do={
+	
+		:local container [/container/get $containerId];
 
 		:put "\nIniciando desinstalacion del contenedor $containerName.";
 		
 		:local isStop [$stopAndWaitContainer $containerName];
 		:put "";
-		
+
 		:if ($isStop) do={
 
 			:put "\nEliminando contenerdor $containerName.";
 			
-			/container/remove ($container->0->".id");
+			/container/remove ($container->".id");
+			
+			:foreach vInterface in=($container->"interface") do={
+				:put "\nRemoviendo interface virtual del bridge: $vInterface";
+				/interface/bridge/port/remove [find where interface=$vInterface];
+				
+				:put "\nRemoviendo interface virtual: $vInterface";
+				/interface/veth/remove [find where name=$etherName];
+			}
 
-			:put ("\nRemoviendo enviroment: " . ($container->0->"envlist"));
-			
-			/container/envs/remove [find where name=($container->0->"envlist")];
-			
-			:foreach mount in=($container->0->"mounts") do={
+			:foreach mount in=($container->"mounts") do={
 				:put "\nRemoviendo mounts: $mount";
 				/container/mounts/remove [find where name=$mount];
-			}			
+			}
 			
-			:put "\nRemoviendo interface virtual del bridge: $etherName";
+			:foreach envlist in=($container->"envlists") do={
+				:put "\nRemoviendo enviroment: $envlist";
+				/container/envs/remove [find where list=$envlist];
+			}
 			
-			/interface/bridge/port/remove [find where interface=$etherName];
-
-			:put "\nRemoviendo interface virtual: $etherName";
-			
-			/interface/veth/remove [find where name=$etherName];
-
 			:put "\nRemoviendo reenvios de puertos configurados previamente para el contenedor $containerName";
 
 			/ip/firewall/nat/remove [find where comment~"container-$containerName"];
@@ -253,9 +254,12 @@
 			:put "\nNo se ha podido detener el contenedor $containerName.";
 			:put "\n";			
 		}
+	
+	
+	
 	} else={
 		:put "\nContenedor $containerName no encontrado.";
 		:put "\n";
-	}
+	}		
 }
 
