@@ -35,8 +35,9 @@
 #ENVIROMENT
 :local enviroment ({});
 :set ($enviroment->"TZ") "America/Caracas";
-:set ($enviroment->"WEBPASSWORD") "123456";
+:set ($enviroment->"FTLCONF_webserver_api_password") "123456";
 :set ($enviroment->"DNSMASQ_USER") "root";
+:set ($enviroment->"FTLCONF_dns_upstreams") "1.1.1.1;8.8.8.8";
 
 #MOUNTS
 :local mounts ({});
