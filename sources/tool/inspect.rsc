@@ -37,7 +37,7 @@
 			:set requestInspect "self";
 		}
 		
-		:local dataInspect [$getInspect $pathInspect "syntax"];
+		:local dataInspect [$getInspect $pathInspect $requestInspect];
 		
 		:put "";
 		:if ([:len $dataInspect] > 0) do={
@@ -102,6 +102,8 @@
 		}
 	}
 
-	#[$inspectChild "ip,address"];
-	[$inspectChild "ip,address,add"];
+	
+
 }
+
+:execute script={[$inspectChild ""];} file=mikrotik-cli 
