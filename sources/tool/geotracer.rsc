@@ -76,8 +76,9 @@
 
 	:local hostName;
 	:local ipAddress;
-	:local tracertCount 1;
+	:local tracertCount 3;
 	:local maxHops 30;
+	:local isIPv6 false;
 	
 	:if ([:typeof [:toip $1]] = "ip") do={
 		:set ipAddress $1;
@@ -87,8 +88,18 @@
 			:set hostName $ipAddress;
 		}
 	} else={
-		:set hostName $1;
-		:set ipAddress [:resolve $hostName];
+		:if ([:typeof [:toip6 $1]] = "ip6") do={
+			:set isIPv6 true;
+			:set ipAddress $1;
+			do {
+				:set hostName [:resolve $ipAddress];
+			} on-error={
+				:set hostName $ipAddress;
+			}
+		} else={
+			:set hostName $1;
+			:set ipAddress [:resolve $hostName];
+		}
 	}
 	
 	:if ([:tonum $2] > 0) do={
@@ -110,7 +121,7 @@
 	:put "";
 	:put ("Nro. de saltos a $ipAddress ($hostName): " . [:len $tracertResult]);
 	:put "";
-	:put ([$format "HOP" 5] . [$format "HOST" 17] . [$format "LOSS" 6] . [$format "SENT" 5] . [$format "LAST" 9] . [$format "AVG" 6] \
+	:put ([$format "HOP" 5] . [$format "HOST" 40] . [$format "LOSS" 6] . [$format "SENT" 5] . [$format "LAST" 9] . [$format "AVG" 6] \
 	. [$format "BEST" 6] . [$format "WORST" 7] . [$format "STD DEV" 9] \
 	. [$format "COUNTRY" 9] . [$format "COUNTRY NAME" 25] . [$format "AS" 10] . [$format "AS NAME" 30]);
 	/terminal style none;
@@ -153,9 +164,18 @@
 				
 				
 				do {
-					:local isPrivate  ((10.0.0.0 = ($dstIp&255.0.0.0)) or (172.16.0.0 = ($dstIp&255.240.0.0)) or  (192.168.0.0 = ($dstIp&255.255.0.0)));
-					:local isReserved ((0.0.0.0 = ($dstIp&255.0.0.0)) or (127.0.0.0 = ($dstIp&255.0.0.0)) or (169.254.0.0 = ($dstIp&255.255.0.0)) \
-					or (224.0.0.0 = ($dstIp&240.0.0.0)) or (240.0.0.0 = ($dstIp&240.0.0.0)));
+					:local isPrivate false;
+					:local isReserved false;
+					
+					:if ($isIPv6) do={
+						:set isPrivate false;
+						:set isReserved false;
+					} else={
+						:set isPrivate  ((10.0.0.0 = ($dstIp&255.0.0.0)) or (172.16.0.0 = ($dstIp&255.240.0.0)) or  (192.168.0.0 = ($dstIp&255.255.0.0)));
+						:set isReserved ((0.0.0.0 = ($dstIp&255.0.0.0)) or (127.0.0.0 = ($dstIp&255.0.0.0)) or (169.254.0.0 = ($dstIp&255.255.0.0)) \
+						or (224.0.0.0 = ($dstIp&240.0.0.0)) or (240.0.0.0 = ($dstIp&240.0.0.0)));
+					}
+					
 					:if ($isPrivate or $isReserved) do={
 						:if ($isPrivate) do={
 							:set data {"country"=""; "countryCode"="PRIVATE"; "as"=""; "asname"=""; "dnsCache"=($dnsCache)};
@@ -194,7 +214,7 @@
 				:set dnsCache ($data->"dnsCache");
 			}
 
-			:put ([$format $idx 5] . [$format $dstIp 17] . [$format ($jump->"loss") 6]  . [$format ($jump->"sent") 5] . [$format ($jump->"last") 9] . [$format ($jump->"avg") 6] \
+			:put ([$format $idx 5] . [$format $dstIp 40] . [$format ($jump->"loss") 6]  . [$format ($jump->"sent") 5] . [$format ($jump->"last") 9] . [$format ($jump->"avg") 6] \
 			. [$format ($jump->"best") 6] . [$format ($jump->"worst") 7] . [$format ($jump->"std-dev") 9] \
 			. [$format ($data->"countryCode") 9] . [$format ($data->"country") 25] . [$format ($data->"as") 10] . [$format ($data->"asname") 30]);
 	#        :if ([:len $dnsCache] > 0) do={
@@ -204,7 +224,7 @@
 	#            :put "";
 	#        }
 		} else={
-			:put ([$format $idx 5] . [$format $dstIp 17] . [$format ($jump->"loss") 6]  . [$format ($jump->"sent") 5] . [$format ($jump->"last") 9] . [$format ($jump->"avg") 6] \
+			:put ([$format $idx 5] . [$format $dstIp 40] . [$format ($jump->"loss") 6]  . [$format ($jump->"sent") 5] . [$format ($jump->"last") 9] . [$format ($jump->"avg") 6] \
 			. [$format ($jump->"best") 6] . [$format ($jump->"worst") 7] . [$format ($jump->"std-dev") 9]);
 		}
 	}
