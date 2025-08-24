@@ -60,7 +60,7 @@
 	
 	
 		:local pathInspect $1;
-		:local requestInspect "child";
+		:local requestInspect "";
 		
 		:if ([:len $requestInspect] = 0) do={
 			:set requestInspect "self";
