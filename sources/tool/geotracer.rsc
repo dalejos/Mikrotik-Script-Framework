@@ -222,7 +222,6 @@
 										:set asName ($arrayResult->4);
 									}
 								}
-								:put $arrayResult;
 								:set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=$asName; "dnsCache"=($dnsCache)};
 							}
 						}
