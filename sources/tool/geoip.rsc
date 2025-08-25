@@ -445,11 +445,27 @@
 				}
 
 				:set idx ($idx + 1);
-				:local origBytes ($connection->"orig-bytes" / 1024 / 1024);
-				:local replBytes ($connection->"repl-bytes" / 1024 / 1024);				
+
+				:local origBytes (($connection->"orig-bytes") / 1024);
+				:if ($origBytes < 1024) do={
+					:set origBytes ($origBytes . " KB");
+				} else={
+					:set origBytes ($origBytes / 1024);
+					:set origBytes ($origBytes . " MB");
+				}
+				
+				:local replBytes (($connection->"repl-bytes") / 1024);
+				:if ($replBytes < 1024) do={
+					:set replBytes ($replBytes . " KB");
+				} else={
+					:set replBytes ($replBytes / 1024);
+					:set replBytes ($replBytes . " MB");
+				}
+				
+				
 				:put ([$format $idx 5] . [$format $srcAddress 22] . [$format $dstAddress 22] . [$format $protocol 7] . [$format $protocolPort 14] \
 				. [$format ($data->"countryCode") 9] . [$format ($data->"country") 20] . [$format ($data->"as") 10] . [$format ($data->"asname") 25] \
-				. [$format ("$origBytes MB / $replBytes MB") 20]);
+				. [$format ("$origBytes / $replBytes") 20]);
 				:if ([:len $dnsCache] > 0) do={
 					:foreach dnsData in=$dnsCache do={
 						:put ([$format ("     type: " . ($dnsData->"type")) 27] . [$format ("name: " . ($dnsData->"name")) 50]);
