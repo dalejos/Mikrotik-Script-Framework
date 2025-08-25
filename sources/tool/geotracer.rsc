@@ -74,8 +74,10 @@
 	:local request 0;
 	:local timeStamp [$getCurrentTimestamp];
 
-	:local hostName;
 	:local ipAddress;
+
+	:local hostName "";
+	:local reverseHostName "";
 	:local tracertCount 3;
 	:local maxHops 30;
 	:local isIPv6 false;
@@ -83,9 +85,9 @@
 	:if ([:typeof [:toip $1]] = "ip") do={
 		:set ipAddress $1;
 		do {
-			:set hostName [:resolve $ipAddress];
+			:set reverseHostName [:resolve $ipAddress];
 		} on-error={
-			:set hostName $ipAddress;
+			:set reverseHostName $ipAddress;
 		}
 	} else={
 		:if ([:typeof [:toip6 $1]] = "ip6") do={
@@ -99,6 +101,12 @@
 		} else={
 			:set hostName $1;
 			:set ipAddress [:resolve $hostName];
+			do {
+				:set reverseHostName [:resolve $ipAddress];
+			} on-error={
+				:set reverseHostName $ipAddress;
+			}		
+			
 		}
 	}
 	
@@ -118,8 +126,15 @@
 	}
 
 	/terminal style syntax-noterm;
+	
+	:local hosts "";
+	:if (([:len $hostName] > 0) and ([:len $reverseHostName] > 0)) do={
+		:set hosts "$hostName, $reverseHostName";
+	} else={
+		:set hosts "$hostName$reverseHostName";
+	}
 	:put "";
-	:put ("Nro. de saltos a $ipAddress ($hostName): " . [:len $tracertResult]);
+	:put ("Nro. de saltos a $ipAddress ($hosts): " . [:len $tracertResult]);
 	:put "";
 	:put ([$format "HOP" 5] . [$format "HOST" 40] . [$format "LOSS" 6] . [$format "SENT" 5] . [$format "LAST" 9] . [$format "AVG" 6] \
 	. [$format "BEST" 6] . [$format "WORST" 7] . [$format "STD DEV" 9] \
@@ -159,7 +174,7 @@
 				}
 			
 			
-				:local lUrl "http://ip-api.com/csv/$dstIp?fields=status,message,country,countryCode,as,asname,query";
+				:local lUrl "http://ip-api.com/csv/$dstIp?fields=status,message,country,countryCode,isp,org,as,asname,query";
 				:local result;
 				
 				
@@ -198,9 +213,17 @@
 						
 						:if ([:typeof $arrayResult] = "array") do={
 							:if ([:pick $arrayResult 0] = "success") do={
-								:local as (($arrayResult->3) . " ");
+								:local as (($arrayResult->5) . " ");
 								:set as [:pick $as 0 [:find $as " "]];
-								:set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=($arrayResult->4); "dnsCache"=($dnsCache)};
+								:local asName ($arrayResult->6);
+								:if ([:len $asName] <= 0) do={
+									:set asName ($arrayResult->3);
+									:if ([:len $asName] <= 0) do={
+										:set asName ($arrayResult->4);
+									}
+								}
+								:put $arrayResult;
+								:set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=$asName; "dnsCache"=($dnsCache)};
 							}
 						}
 					}
