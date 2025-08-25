@@ -1,56 +1,12 @@
 #Version: 7.0.
 #Fecha: 02-07-2022.
-#RouterOS 7.2.3 y superior.
+#RouterOS 7.19.0 y superior.
 #Comentario: 
 
 #TODO-BEGIN
 
 :global geoTracert;
 :set geoTracert do={
-	:local getCurrentTimestamp;
-	:local getCurrentTimestamp do={
-		:local date [/system clock get date];
-		:local months ({"jan"=1;"feb"=2;"mar"=3;"apr"=4;"may"=5;"jun"=6;"jul"=7;"aug"=8;"sep"=9;"oct"=10;"nov"=11;"dec"=12});
-		:local daysForMonths ({31;28;31;30;31;30;31;31;30;31;30;31});
-		
-		:local day [:tonum [:pick $date 4 6]];
-		:local month ($months->[:pick $date 0 3]);
-		:local year [:tonum [:pick $date 7 11]];
-		
-		:local leapDays (($year - 1968) / 4);
-		
-		:if ((($leapDays * 4) + 1968) = $year) do={
-			:set leapDays ($leapDays - 1);
-			:set ($daysForMonths->1) 29;
-		}
-		
-		:local days ($day - 1);
-		
-		:if (($month - 1) > 0) do={
-			:for index from=0 to=($month - 2) do={
-				:set days ($days + ($daysForMonths->($index)));
-			}
-		}
-			
-		:local daysForYear 365;
-		:local secondsForDay 86400;
-		:local gmtOffset [/system clock get gmt-offset];
-		
-		:local now [/system clock get time];
-		:local hour [:tonum [:pick $now 0 2]];
-		:local minutes [:tonum [:pick $now 3 5]];
-		:local seconds [:tonum [:pick $now 6 8]];
-
-		:local timestamp ((((($year - 1970) * $daysForYear) + $leapDays + $days) * $secondsForDay) + ($hour * 3600) + ($minutes * 60) + seconds);
-		
-		:if ($gmtOffset <= $secondsForDay) do={
-			:set timestamp ($timestamp - $gmtOffset);
-		} else={
-			:set timestamp ($timestamp + (-$gmtOffset&0x00000000FFFFFFFF));
-		}
-		
-		:return $timestamp;    
-	}
 
 	:local format;
 	:local format do={
@@ -72,7 +28,7 @@
 	:local dstAddressQueryResult ([]);
 	:local idx 0;
 	:local request 0;
-	:local timeStamp [$getCurrentTimestamp];
+	:local timeStamp [:timestamp];
 
 	:local ipAddress;
 
@@ -174,7 +130,7 @@
 				}
 			
 			
-				:local lUrl "http://ip-api.com/csv/$dstIp?fields=status,message,country,countryCode,isp,org,as,asname,query";
+				:local lUrl "http://ip-api.com/json/$dstIp?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,reverse,query";
 				:local result;
 				
 				
@@ -202,27 +158,27 @@
 						:set request ($request + 1);
 						:if ($request >= 45) do={
 							:set request 0;
-							:local timeToDelay ([$getCurrentTimestamp] - $timeStamp);
-							:if ($timeToDelay < 65) do={
-								:delay (65 - $timeToDelay);
+							:local timeToDelay ([:timestamp] - $timeStamp);
+							:if ($timeToDelay < 65s) do={
+								:delay (65s - $timeToDelay);
 							}
-							:set timeStamp [$getCurrentTimestamp];
+							:set timeStamp [:timestamp];
 						}
 						
-						:local arrayResult [:toarray ($result->"data")];
+						:local arrayResult [:deserialize ($result->"data") from=json];
 						
 						:if ([:typeof $arrayResult] = "array") do={
-							:if ([:pick $arrayResult 0] = "success") do={
-								:local as (($arrayResult->5) . " ");
+							:if (($arrayResult->"status") = "success") do={
+								:local as (($arrayResult->"as") . " ");
 								:set as [:pick $as 0 [:find $as " "]];
-								:local asName ($arrayResult->6);
+								:local asName ($arrayResult->"asname");
 								:if ([:len $asName] <= 0) do={
-									:set asName ($arrayResult->3);
+									:set asName ($arrayResult->"isp");
 									:if ([:len $asName] <= 0) do={
-										:set asName ($arrayResult->4);
+										:set asName ($arrayResult->"org");
 									}
 								}
-								:set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=$asName; "dnsCache"=($dnsCache)};
+								:set data {"country"=($arrayResult->"country"); "countryCode"=($arrayResult->"countryCode"); "as"=$as; "asname"=$asName; "dnsCache"=($dnsCache)};
 							}
 						}
 					}
