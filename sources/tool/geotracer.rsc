@@ -130,7 +130,7 @@
 				}
 			
 			
-				:local lUrl "http://ip-api.com/json/$dstIp?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,reverse,query";
+				:local lUrl "http://ip-api.com/json/$dstIp?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,query";
 				:local result;
 				
 				
