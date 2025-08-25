@@ -1,6 +1,6 @@
 #Version: 7.0.
 #Fecha: 02-07-2022.
-#RouterOS 7.19.4 e inferior.
+#RouterOS 7.20 y superior.
 #Comentario: 
 
 #TODO-BEGIN
@@ -325,7 +325,7 @@
 		:set dstAddressQueryList ([]);
 		:set dstAddressQueryResult ([]);
 	}
-	
+
 	:local idx 0;
 	:local request 0;
 	:local timeStamp [:timestamp];
@@ -336,9 +336,8 @@
 			:set src "*";
 		}
 	}
-
-	#:local firewallConnections [/ip/firewall/connection/print where src-address~"$src"];
-	:local firewallConnections [/ip/firewall/connection/print proplist="src-address,dst-address,protocol,orig-bytes,repl-bytes" as-value where src-address~"$src"];
+	
+	:local firewallConnections [/ip/firewall/connection/print proplist="src-address,src-port,dst-address,dst-port,protocol,orig-bytes,repl-bytes" as-value where src-address~"$src"];
 	/terminal style syntax-noterm;
 	:put ("Nro. de conexiones: " . [:len $firewallConnections]);
 	:put "";
@@ -348,7 +347,6 @@
 	/terminal style none;
 
 	:foreach connection in=$firewallConnections do={
-		#:local connection [/ip firewall connection get $id];
 		:if ([:len $connection] > 0) do={
 			:local dstAddress ($connection->"dst-address");
 			:local srcAddress ($connection->"src-address");
@@ -361,25 +359,17 @@
 				
 				:local dstIp $dstAddress;
 				:local terminalStyle "varname-local";
-				:local protocolPort "";
-				:local doubleDot [:find $dstIp ":"];
-				:if ( $doubleDot > 0) do={ 
-					:set protocolPort [:pick $dstIp ($doubleDot+1) [:len $dstIp]];
+				:local protocolPort [:tostr ($connection->"dst-port")];
+
+				:set protocolPort ($services->"$protocol"->"$protocolPort");
+				:if ([:len $protocolPort] > 0) do={
+					:set protocolPort "> $protocolPort";
+				} else={
+					:set protocolPort [:tostr ($connection->"src-port")];
 					:set protocolPort ($services->"$protocol"->"$protocolPort");
-					:set dstIp [:pick $dstIp 0 $doubleDot];
 					:if ([:len $protocolPort] > 0) do={
-						:set protocolPort "> $protocolPort";
-					} else={
-						:local srcIp $srcAddress;
-						:set doubleDot [:find $srcIp ":"];
-						:if ( $doubleDot > 0) do={ 
-							:set protocolPort [:pick $srcIp ($doubleDot+1) [:len $srcIp]];
-							:set protocolPort ($services->"$protocol"->"$protocolPort");
-							:if ([:len $protocolPort] > 0) do={
-								:set protocolPort "< $protocolPort";
-								:set terminalStyle "varname-global";
-							}
-						}
+						:set protocolPort "< $protocolPort";
+						:set terminalStyle "varname-global";
 					}
 				}
 				
@@ -400,7 +390,7 @@
 					}
 				
 				
-					:local lUrl "http://ip-api.com/csv/$dstIp?fields=status,message,country,countryCode,as,asname,query";
+					:local lUrl "http://ip-api.com/json/$dstIp?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,query";
 					:local result;
 					
 					
@@ -408,6 +398,7 @@
 						:local isPrivate  ((10.0.0.0 = ($dstIp&255.0.0.0)) or (172.16.0.0 = ($dstIp&255.240.0.0)) or  (192.168.0.0 = ($dstIp&255.255.0.0)));
 						:local isReserved ((0.0.0.0 = ($dstIp&255.0.0.0)) or (127.0.0.0 = ($dstIp&255.0.0.0)) or (169.254.0.0 = ($dstIp&255.255.0.0)) \
 						or (224.0.0.0 = ($dstIp&240.0.0.0)) or (240.0.0.0 = ($dstIp&240.0.0.0)));
+						
 						:if ($isPrivate or $isReserved) do={
 							:if ($isPrivate) do={
 								:set data {"country"=""; "countryCode"="PRIVATE"; "as"=""; "asname"=""; "dnsCache"=($dnsCache)};
@@ -426,13 +417,20 @@
 								:set timeStamp [:timestamp];
 							}
 							
-							:local arrayResult [:toarray ($result->"data")];
+							:local arrayResult [:deserialize ($result->"data") from=json];
 							
 							:if ([:typeof $arrayResult] = "array") do={
-								:if ([:pick $arrayResult 0] = "success") do={
-									:local as (($arrayResult->3) . " ");
+								:if (($arrayResult->"status") = "success") do={
+									:local as (($arrayResult->"as") . " ");
 									:set as [:pick $as 0 [:find $as " "]];
-									:set data {"country"=($arrayResult->1); "countryCode"=($arrayResult->2); "as"=$as; "asname"=($arrayResult->4); "dnsCache"=($dnsCache)};
+									:local asName ($arrayResult->"asname");
+									:if ([:len $asName] <= 0) do={
+										:set asName ($arrayResult->"isp");
+										:if ([:len $asName] <= 0) do={
+											:set asName ($arrayResult->"org");
+										}
+									}
+									:set data {"country"=($arrayResult->"country"); "countryCode"=($arrayResult->"countryCode"); "as"=$as; "asname"=$asName; "dnsCache"=($dnsCache)};
 								}
 							}
 						}
