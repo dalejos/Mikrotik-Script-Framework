@@ -1,9 +1,19 @@
 #BRIDGE
 :local bridge ({});
 :set ($bridge->"name") "docker";
-:set ($bridge->"address") "10.11.12.1";
-:set ($bridge->"cidr") "24";
-:set ($bridge->"nat") true;
+
+:local ipv4 ({});
+:set ($ipv4->"address") "10.11.12.1";
+:set ($ipv4->"cidr") "24";
+:set ($ipv4->"nat") true;
+
+:local ipv6 ({});
+:set ($ipv6->"address") "fd17:fa22:2edf::1";
+:set ($ipv6->"cidr") "64";
+
+:set ($bridge->"ipv4") $ipv4;
+:set ($bridge->"ipv6") $ipv6;
+
 
 #DISK
 :local disk ({});
@@ -17,7 +27,7 @@
 :set ($container->"name") "adguardhome";
 :set ($container->"file") "adguardhome.tar";
 :set ($container->"remote-image") "adguard/adguardhome:latest";
-:set ($container->"address") "10.11.12.11";
+:set ($container->"address") "10.11.12.11, fd17:fa22:2edf::2";
 :set ($container->"cmd") "";
 :set ($container->"entrypoint") "";
 :set ($container->"domain-name") "docker.lan";
