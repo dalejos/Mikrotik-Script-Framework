@@ -37,6 +37,13 @@
 :set ($container->"comment") ($container->"name");
 :set ($container->"dns") "";
 :set ($container->"workdir") "";
+
+:set ($container->"check-certificate") no;
+:set ($container->"devices") ({});
+:set ($container->"memory-high") "unlimited";
+:set ($container->"user") "";
+:set ($container->"auto-restart-interval") "none";
+
 :set ($container->"start-on-boot") false;
 
 :set ($container->"nat") true;
