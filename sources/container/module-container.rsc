@@ -196,14 +196,14 @@
 							
 			:if ([:len [/file/find where name=$imageFile]] > 0) do={
 				:put "Instalando desde archivo de imagen.";
-				/container/add file=$imageFile interface=$vethName root-dir=$installDir mounts=$mountsName envlist=$containerName \
+				/container/add name=$containerName file=$imageFile interface=$vethName root-dir=$installDir mounts=$mountsName envlist=$containerName \
 				comment=($containerName . " - " . $vethAddress) logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint \
 				hostname=($container->"hostname") domain-name=($container->"domain-name") dns=($container->"dns") workdir=($container->"workdir") \
 				stop-signal=($container->"stop-signal") start-on-boot=($container->"start-on-boot") check-certificate=($container->"check-certificate") \
 				memory-high=($container->"memory-high") user=($container->"user") auto-restart-interval=($container->"auto-restart-interval");
 			} else={
 				:put "Archivo de imagen no encontrado, instalando desde imagen remota: $remoteImage.";
-				/container/add remote-image=$remoteImage interface=$vethName root-dir=$installDir mounts=$mountsName envlist=$containerName \
+				/container/add name=$containerName remote-image=$remoteImage interface=$vethName root-dir=$installDir mounts=$mountsName envlist=$containerName \
 				comment=($containerName . " - " . $vethAddress) logging=yes cmd=$dockerCmd entrypoint=$dockerEntrypoint \
 				hostname=($container->"hostname") domain-name=($container->"domain-name") dns=($container->"dns") workdir=($container->"workdir") \
 				stop-signal=($container->"stop-signal") start-on-boot=($container->"start-on-boot") check-certificate=($container->"check-certificate") \
