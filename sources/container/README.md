@@ -1,6 +1,6 @@
 # Módulo de Contenedores - Mikrotik Script Framework
 
-## ⚠️ Cambios Importantes - v2.0
+## ⚠️ Cambios Importantes - v7.20+
 
 **Este módulo ha sido completamente reescrito para RouterOS v7.20+ y ya NO es compatible con versiones anteriores del framework.**
 
