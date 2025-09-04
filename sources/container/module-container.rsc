@@ -265,6 +265,7 @@
 			:if ([:len [/file/find where name=$imageFile]] > 0) do={
 				:put "Instalando desde archivo de imagen: $imageFile.";
 				:set ($container->"remote-image");
+				:set ($container->"file") $imageFile;
 			} else={
 				:put "Archivo de imagen no encontrado, instalando desde imagen remota: $remoteImage.";
 				:set ($container->"file");
