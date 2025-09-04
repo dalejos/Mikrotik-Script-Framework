@@ -6,7 +6,7 @@
 #DISK
 :local disk ({});
 
-:set ($disk->"fs-label") "docker";
+:set ($disk->"fs-label") "containers";
 :set ($disk->"slot") "";
 :set ($disk->"root-dir") "containers";
 :set ($disk->"install-dir") "apps";
