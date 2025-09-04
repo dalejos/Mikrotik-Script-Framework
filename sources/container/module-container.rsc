@@ -55,7 +55,7 @@
 			:local diskName "";
 			:local diskId [/disk/find where fs-label=($disk->"fs-label")];
 			:if ([:len $diskId] = 0) do={
-				:local diskId [/disk/find where slot=($disk->"slot")];
+				:set diskId [/disk/find where slot=($disk->"slot")];
 			}
 			:if ([:len $diskId] > 0) do={
 				:set diskName [/disk/get $diskId slot];
