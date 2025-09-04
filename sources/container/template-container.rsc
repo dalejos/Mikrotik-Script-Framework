@@ -35,7 +35,6 @@
 :set ($container->"auto-restart-interval");
 
 :set ($container->"nat") true;
-:set ($container->"re-mount") true;
 
 #INTERFACE
 :local interfaceList ({});
