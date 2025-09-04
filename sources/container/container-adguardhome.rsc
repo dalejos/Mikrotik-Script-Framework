@@ -1,69 +1,84 @@
 #BRIDGE
 :local bridge ({});
-:set ($bridge->"name") "docker";
-
-:local ipv4 ({});
-:set ($ipv4->"address") "10.11.12.1";
-:set ($ipv4->"cidr") "24";
-:set ($ipv4->"nat") true;
-
-:local ipv6 ({});
-:set ($ipv6->"address") "fd17:fa22:2edf::1";
-:set ($ipv6->"cidr") "64";
-
-:set ($bridge->"ipv4") $ipv4;
-:set ($bridge->"ipv6") $ipv6;
-
+:set ($bridge->"bridge") "containers";
+:set ($bridge->"ipv4-nat") true;
 
 #DISK
 :local disk ({});
-:set ($disk->"label") "docker";
-:set ($disk->"name") "";
-:set ($disk->"install-dir") "docker";
-:set ($disk->"image-dir") "images";
+
+:set ($disk->"fs-label") "containers";
+:set ($disk->"slot") "";
+:set ($disk->"root-dir") "containers";
+:set ($disk->"install-dir") "apps";
+:set ($disk->"mounts-dir") "mounts";
+:set ($disk->"images-dir") "images";
 
 #CONTAINER
 :local container ({});
+
 :set ($container->"name") "adguardhome";
+:set ($container->"comment");
 :set ($container->"file") "adguardhome.tar";
 :set ($container->"remote-image") "adguard/adguardhome:latest";
-:set ($container->"address") "10.11.12.11, fd17:fa22:2edf::2";
-:set ($container->"cmd") "";
-:set ($container->"entrypoint") "";
-:set ($container->"domain-name") "docker.lan";
+:set ($container->"check-certificate") "no";
+:set ($container->"cmd");
+:set ($container->"entrypoint");
+:set ($container->"workdir");
 :set ($container->"hostname") ($container->"name");
-:set ($container->"logging") yes;
-:set ($container->"stop-signal") "15";
-:set ($container->"comment") ($container->"name");
-:set ($container->"dns") "";
-:set ($container->"workdir") "";
-
-:set ($container->"check-certificate") no;
-:set ($container->"devices") ({});
+:set ($container->"domain-name") "containers.lan";
+:set ($container->"dns");
 :set ($container->"memory-high") "unlimited";
-:set ($container->"user") "";
-:set ($container->"auto-restart-interval") "none";
-
-:set ($container->"start-on-boot") false;
+:set ($container->"stop-signal") 15;
+:set ($container->"user");
+:set ($container->"logging") "yes";
+:set ($container->"start-on-boot") "no";
+:set ($container->"auto-restart-interval");
 
 :set ($container->"nat") true;
-:set ($container->"re-mount") true;
 
-#ENVIROMENT
-:local enviroment ({});
+#INTERFACE
+:local interfaceList ({});
+:local interface ({});
+
+#:set ($interface->"name");
+:set ($interface->"name") "-dual-stack";
+:set ($interface->"mac-address");
+:set ($interface->"address") "10.11.12.11/24, fd17:fa22:2edf::b/64";
+:set ($interface->"gateway") 10.11.12.1;
+:set ($interface->"gateway6") fd17:fa22:2edf::1;
+:set ($interface->"dhcp");
+:set ($interface->"bridge") $bridge;
+:set interfaceList ($interfaceList, {$interface});
 
 #MOUNTS
-:local mounts ({});
-:set ($mounts->"conf") "/opt/adguardhome/conf";
-:set ($mounts->"work") "/opt/adguardhome/work";
+:local mountList ({});
+:local mount ({});
+
+:set ($mount->"name") "-conf";
+:set ($mount->"dst") "/opt/adguardhome/conf";
+:set mountList ($mountList, {$mount});
+
+:set mount ({});
+:set ($mount->"name") "-work";
+:set ($mount->"dst") "/opt/adguardhome/work";
+:set mountList ($mountList, {$mount});
+
+#ENVIROMENT
+:local enviromentList ({});
+:local enviroment ({});
+
+#DEVICES
+:local devicesList ({});
 
 #PORTS
-:local ports ({});
+:local portList ({});
 
 #REGISTER
-:set ($container->"enviroment") $enviroment;
-:set ($container->"mounts") $mounts;
-:set ($container->"ports") $ports;
+:set ($container->"interface") $interfaceList;
+:set ($container->"mounts") $mountList;
+:set ($container->"envlists") $enviromentList;
+:set ($container->"devices") $devicesList;
+:set ($container->"ports") $portList;
 
 :global registerContainer;
-[$registerContainer bridge=$bridge disk=$disk container=$container];
+[$registerContainer disk=$disk container=$container];
