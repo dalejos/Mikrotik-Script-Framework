@@ -48,6 +48,7 @@
 :set ($interface->"gateway6") fd17:fa22:2edf::1;
 :set ($interface->"dhcp");
 :set ($interface->"bridge") $bridge;
+
 :set interfaceList ($interfaceList, {$interface});
 
 :set interface ({});
@@ -55,7 +56,6 @@
 :set ($interface->"dhcp") "yes";
 
 :set interfaceList ($interfaceList, {$interface});
-
 
 #MOUNTS
 :local mountList ({});
@@ -105,7 +105,6 @@
 #PORTS
 :local portList ({});
 	
-
 #REGISTER
 :set ($container->"interface") $interfaceList;
 :set ($container->"mounts") $mountList;
