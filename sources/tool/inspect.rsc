@@ -57,6 +57,7 @@
 		:global inspectChild;
 		:global makePath;
 		:global getInspect;
+		:global inspectSyntax;
 	
 	
 		:local pathInspect $1;
