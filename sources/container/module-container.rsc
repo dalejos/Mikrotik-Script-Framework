@@ -242,7 +242,7 @@
 			:set $devicesList [:serialize $devicesList delimiter="," to=dsv];
 			:put "\nLista de devices: $devicesList.";
 			
-			#CONTINER
+			#CONTAINER
 			:put "\nCreando el contenedor: $containerName, root-dir: $installDir.";
 			
 			:set ($container->"root-dir") $installDir;
