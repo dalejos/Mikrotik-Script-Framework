@@ -343,7 +343,7 @@
 	:put "";
 	:put ([$format "#" 5] . [$format "SRC. ADDRESS" 22] . [$format "DST. ADDRESS" 22] . [$format "PROTO" 7] . [$format "SERVICE" 14] \
 	. [$format "COUNTRY" 9] . [$format "COUNTRY NAME" 20] . [$format "AS" 10] . [$format "AS NAME" 25] \
-	. [$format "ORIG./REPL." 20]);
+	. [$format "ORIG./REPL." 20] . [$format "RTT" 12]);
 	/terminal style none;
 
 	:foreach connection in=$firewallConnections do={
@@ -462,10 +462,24 @@
 					:set replBytes ($replBytes . " MB");
 				}
 				
+				:local dataPing [ping $dstAddress count=1 as-value proplist=max-rtt,received];
+				
+				:if (($dataPing->"received") > 0) do={
+					:local nsec [:tonsec ($dataPing->"max-rtt")];
+					:local ms ($nsec / 1000000);
+					:local us 0;
+					:if ($ms > 0) do={
+						:set us (($nsec - ($ms * 1000000)) / 1000);
+					} else={
+						:set us ($nsec / 1000);
+					}
+					:set ($dataPing->"max-rtt") ($ms . "ms" . $us . "us");
+				}
+				
 				
 				:put ([$format $idx 5] . [$format $srcAddress 22] . [$format $dstAddress 22] . [$format $protocol 7] . [$format $protocolPort 14] \
 				. [$format ($data->"countryCode") 9] . [$format ($data->"country") 20] . [$format ($data->"as") 10] . [$format ($data->"asname") 25] \
-				. [$format ("$origBytes / $replBytes") 20]);
+				. [$format ("$origBytes / $replBytes") 20] . [$format ($dataPing->"max-rtt") 12]);
 				:if ([:len $dnsCache] > 0) do={
 					:foreach dnsData in=$dnsCache do={
 						:put ([$format ("     type: " . ($dnsData->"type")) 27] . [$format ("name: " . ($dnsData->"name")) 50]);
